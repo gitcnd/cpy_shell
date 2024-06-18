@@ -7,9 +7,10 @@ Everything is written to save RAM and Flash; command bytecode is not loaded if y
 
 ## Installation and running:
 
-* place the .mpy files into /lib/ on your CircuitPython device
-* run the following from the >>> repl
-` import sh `
+* place the .mpy files for your version into /lib/ on your CircuitPython device
+* run `import sh` from the >>> repl
+
+>>> ` import sh `
 
 ## Supported Commands
 
