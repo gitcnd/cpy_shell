@@ -10,7 +10,7 @@ Everything is written to save RAM and Flash; command bytecode is not loaded if y
 * place the .mpy files for your version into /lib/ on your CircuitPython device
 * run `import sh` from the >>> repl
 
->>> ` import sh `
+\>>> ` import sh `
 
 ## Supported Commands
 
@@ -175,3 +175,11 @@ Implements a `help` command that provides information about available commands a
 
 ### User Customization
 Supports settings.toml for configuration and environment where users can customize their shell experience.
+
+
+## Notes
+
+* Circuitpython is only a single thread, so you can't background `&` things.
+* pipes are "faked" by sending output to temp files and running commands with redirection.
+* ENVironment variables come from, and write into, `settings.toml`
+* use ^C to exit back to the python repl \>>>
