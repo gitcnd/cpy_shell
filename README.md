@@ -76,6 +76,7 @@ Everything is written to save RAM and Flash; command bytecode is not loaded if y
 
 ### Development Tools
 - `python` - inbuilt - alias for `run`
+- `sh` - inbuilt - aliasthis tool itself (you can run commands from a .sh file through this shell)
 - `git` - Distributed version control system
 - `diff` - Compare files line by line
 
