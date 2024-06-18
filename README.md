@@ -1,7 +1,7 @@
 # cpy_shell
 Linux-like shell interface for CircuitPython
 
-Inspired by [mipyshell](https://github.com/vsolina/mipyshell) and busybox, here is a commandline shell for your CircuitPython board carefully implimenting a range of usefull commands.
+Inspired by [mipyshell](https://github.com/vsolina/mipyshell) and busybox, here is a command-line shell for your CircuitPython board carefully implementing a range of useful commands.
 
 Everything is written to save RAM and Flash; command bytecode is not loaded if you don't run the command, history is stored in a file, not in RAM, pipes use flash instead of RAM, etc.
 
@@ -35,14 +35,14 @@ Everything is written to save RAM and Flash; command bytecode is not loaded if y
 - `more` - View file contents page-by-page
 - `wc` - Word, line, character, and byte count
 - `zcat` - Concatenate compressed files and output
-- `less` - View file contents page-by-page with backward movement (if not part of BusyBox, similar to `more`)
+- `less` - View file contents page-by-page with backward movement (similar to `more`)
 - `hexedit` - View and edit files in hexadecimal format
 
 ### System Information
 - `history` - Command history
 - `uname` - Print system information
 - `uptime` - Tell how long the system has been running
-- `hostname` - Show or set the system's host name
+- `hostname` - Show or set the system's hostname
 - `date` - Display or set the system date and time
 - `whois` - Query domain name information
 - `env` - Display or set environment variables
@@ -53,18 +53,19 @@ Everything is written to save RAM and Flash; command bytecode is not loaded if y
 
 ### Networking Utilities
 - `curl` - Transfer data from or to a server
+- `wget` - Non-interactive network downloader (alias for `curl`)
 - `ping` - Send ICMP ECHO_REQUEST to network hosts
 - `dig` - DNS lookup
 - `ssh` - OpenSSH remote login client
 - `scp` - Secure copy (remote file copy program)
 - `telnet` - User interface to the TELNET protocol
 - `ifconfig` - Configure network interfaces
-- `wget` - Non-interactive network downloader
 - `ftp` - File Transfer Protocol client
 
 ### Package Management
-- `yum` - Package manager (not typically part of BusyBox, more for full Linux distributions)
-- `apt` - Advanced Package Tool (similarly not part of BusyBox)
+- `pip` - Package manager - aliases to help with installing 
+- `yum` - Package manager - alias for `pip`
+- `apt` - Advanced Package Tool - alias for `pip`
 
 ### File Compression
 - `tar` - Archive files
@@ -74,9 +75,8 @@ Everything is written to save RAM and Flash; command bytecode is not loaded if y
 - `bunzip2` - Decompress files
 
 ### Development Tools
-- `perl` - Practical Extraction and Report Language (not part of BusyBox)
-- `python` - Python interpreter (not part of BusyBox)
-- `git` - Distributed version control system (not part of BusyBox)
+- `python` - inbuilt - alias for `run`
+- `git` - Distributed version control system
 - `diff` - Compare files line by line
 
 ### Miscellaneous Utilities
@@ -108,7 +108,7 @@ Everything is written to save RAM and Flash; command bytecode is not loaded if y
 - `button` - display the state of the default button
 - `photo` - take a photo from the device camera
 - `neo_blink` - set one or more neopixel LED colours
-- `blink_all_pins` - output pin numbers using TTL 1's and 0's to identify pins (e.g. 7 x 1-0 pulese for GPIO7)
+- `blink_all_pins` - output pin numbers using TTL 1's and 0's to identify pins (e.g. 7 x 1-0 pulses for GPIO7)
 - `beep` - send an analogue tone to the default speaker
 - `freq` - set a specific analogue output to a GPIO pin (e.g. move a servo)
 ####
@@ -118,7 +118,7 @@ Everything is written to save RAM and Flash; command bytecode is not loaded if y
 - `clear` - erase the screen
 ####
 - `mountsd` - attach an SD card
-- `umount` - unattach it
+- `umount` - un-attach it
 ####
 - `run` - execute a python program from the shell - does progressive-compilation to save space.
 ####
@@ -133,8 +133,8 @@ Everything is written to save RAM and Flash; command bytecode is not loaded if y
 - `scani2c` - show attached I2C devices found
 ####
 - `temperature` - print current temperature
-- `mag` - show the X, Y, and Z field strength from a magentometer
-- `gps` - display your lattitude and longitude
+- `mag` - show the X, Y, and Z field strength from a magnetometer
+- `gps` - display your latitude and longitude
 - `radar` - output data from your attached radar device
 ####
 - `telnetd` - listen for terminal input over TCP/IP
@@ -157,13 +157,13 @@ Basic support for some piping (`|`) and redirection (`>`, `>>`, `<`) to chain co
 Allow users to set, view, and use environment variables.
 
 ### Scripting
-Support for easily running Python, using progressive compilation, enabling running larger programs that woul not otherwise fit into RAM
+Support for easily running Python, using progressive compilation, enabling running larger programs that would not otherwise fit into RAM
 
 ### Aliases
 Allow users to create command aliases for frequently used commands.
 
 ### Help System
-Implement a `help` command that provides information about available commands and their usage.
+Implements a `help` command that provides information about available commands and their usage.
 
 ### User Customization
 Supports settings.toml for configuration and environment where users can customize their shell experience.
