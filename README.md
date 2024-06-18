@@ -66,6 +66,7 @@ Everything is written to save RAM and Flash; command bytecode is not loaded if y
 - `ssh` - OpenSSH remote login client
 - `scp` - Secure copy (remote file copy program)
 - `telnet` - User interface to the TELNET protocol
+- `nc` - netcat arbitrary TCP and UDP connections and listens
 - `ifconfig` - Configure network interfaces
 - `ftp` - File Transfer Protocol client
 
@@ -183,3 +184,4 @@ Supports settings.toml for configuration and environment where users can customi
 * pipes are "faked" by sending output to temp files and running commands with redirection.
 * ENVironment variables come from, and write into, `settings.toml`
 * use ^C to exit back to the python repl \>>>
+
