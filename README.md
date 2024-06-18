@@ -5,6 +5,12 @@ Inspired by [mipyshell](https://github.com/vsolina/mipyshell) and busybox, here 
 
 Everything is written to save RAM and Flash; command bytecode is not loaded if you don't run the command, history is stored in a file, not in RAM, pipes use flash instead of RAM, etc.
 
+## Installation and running:
+
+* place the .mpy files into /lib/ on your CircuitPython device
+* run the following from the >>> repl
+` import sh `
+
 ## Supported Commands
 
 ### File Management

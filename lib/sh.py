@@ -13,10 +13,136 @@ Notes:
  modules:
         This test script __name__ is: test
         This test script __file__ is located at: /lib/test.py
+
+https://github.com/todbot/circuitpython-tricks
+Alternatives: if supervisor.runtime.serial_bytes_available:
+
+
+
 """
 
 import os
 import supervisor
+
+import sys
+import socketpool
+import wifi
+import time
+
+# Custom output class for redirection and handling sockets/files
+class ShellOutput:
+    def __init__(self):
+        self.sockets = []  # List of open TCP/IP sockets
+        self.files = []    # List of open file objects
+        self.socket_buffers = {}  # Dictionary to store buffers for each socket
+
+    # Initialize buffers for sockets
+    def initialize_buffers(self):
+        self.socket_buffers = {sock: "" for sock in self.sockets}
+
+    # Send characters to all sockets and files
+    def send_chars_to_all(self, chars):
+        if chars:
+            sys.stdout.write(chars)
+            # Send to all files
+            for file in self.files:
+                try:
+                    file.write(chars)
+                    file.flush()
+                except Exception as e:
+                    print(f"File write exception: {e}")
+
+        # Flag to check if any buffer has remaining data
+        any_buffer_non_empty = False
+
+        # Send to all sockets
+        for sock in self.sockets:
+            try:
+                if self.socket_buffers[sock]:
+                    chars_to_send = self.socket_buffers[sock] + chars
+                    sock.send(chars_to_send.encode('utf-8'))
+                    self.socket_buffers[sock] = ""
+                else:
+                    sock.send(chars.encode('utf-8'))
+            except Exception as e:
+                print(f"Socket send exception: {e}")
+                self.socket_buffers[sock] += chars
+                if len(self.socket_buffers[sock]) > 80:
+                    self.socket_buffers[sock] = self.socket_buffers[sock][-80:]  # Keep only the last 80 chars
+
+            # Update the flag if there is still data in the buffer
+            if self.socket_buffers[sock]:
+                any_buffer_non_empty = True
+
+        return any_buffer_non_empty
+
+    # Method to open a file
+    def open_file(self, filepath):
+        try:
+            file = open(filepath, 'w')
+            self.files.append(file)
+            print("File opened successfully.")
+        except Exception as e:
+            print("File setup failed:", e)
+
+    # Method to open a socket
+    def open_socket(self, address, port, timeout=10):
+        try:
+            pool = socketpool.SocketPool(wifi.radio)
+            sock = pool.socket(pool.AF_INET, pool.SOCK_STREAM)
+            # sock.setblocking(False)
+
+            try:
+                sock.connect((address, port))
+            except OSError as e:
+                if e.errno != 119:  # EINPROGRESS
+                    raise
+
+            start_time = time.monotonic()
+            while True:
+                try:
+                    sock.send(b'') # cannot fail - nonblocking?
+                    break
+                except OSError as e:
+                    if e.errno != 11:  # EAGAIN, try again
+                        raise
+                    if time.monotonic() - start_time > timeout:
+                        raise TimeoutError("Timeout while waiting for socket connection")
+                    time.sleep(0.1)
+            
+            self.sockets.append(sock)
+            print("Socket connected successfully.")
+            self.initialize_buffers()
+        except Exception as e:
+            print("Socket setup failed:", e)
+
+    # Method to flush buffers
+    def flush(self):
+        while self.send_chars_to_all(""):
+            time.sleep(0.1)  # Prevent a tight loop
+
+# Output redirector context manager
+class OutputRedirector:
+    def __init__(self, new_output):
+        self.new_output = new_output
+        self.old_print = None
+
+    def __enter__(self):
+        import builtins
+        self.old_print = builtins.print
+        builtins.print = self.custom_print
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        import builtins
+        builtins.print = self.old_print
+
+    def custom_print(self, *args, **kwargs):
+        sep = kwargs.get('sep', ' ')
+        end = kwargs.get('end', '\n')
+        output = sep.join(map(str, args)) + end
+        self.new_output.send_chars_to_all(output)
+
+
 
 class sh:
     def __init__(self):
@@ -181,23 +307,50 @@ class sh:
         return "<executed {}>".format(command)
 
 
-# Example usage:
-shell = sh()
-test_cases = [
-    r'ls --test=5 -abc "file name with spaces" $HOSTNAME $HOME | grep "pattern" > output.txt',
-    r'sort -n -k2,3 < input.txt',
-    r'echo `ls` | sort -r',
-    r'echo $(sort $(echo "-r" `echo - -n`) -n)'
-]
 
-for command_line in test_cases:
-    cmds = shell.parse_command_line(command_line)
-    print(f"Test case: {command_line}")
-    for i, cmd in enumerate(cmds):
-        print(f"Command {i + 1}:")
-        print("  Switches:", cmd['switches'])
-        print("  Arguments:", cmd['arguments'])
-        print("  Redirections:", cmd['redirections'])
-        print("  Pipe from:", cmd['pipe_from'])
-    print()
+
+
+
+# Main function to demonstrate usage
+def main():
+    shell_output = ShellOutput()
+    # shell_output.open_socket('chrisdrake.com', 9887)	# works (might be blocking?)
+    # shell_output.open_file('/example.txt')		# works
+
+    # Use the custom context manager to redirect stdout
+    with OutputRedirector(shell_output):
+        #print("GET /lt.asp?cpy HTTP/1.0\r\nHost: chrisdrake.com\r\n\r\n")
+
+
+        # Example usage:
+        shell = sh()
+        test_cases = [
+            r'ls --test=5 -abc "file name with spaces" $HOSTNAME $HOME | grep "pattern" > output.txt',
+            r'sort -n -k2,3 < input.txt',
+            r'echo `ls` | sort -r',
+            r'echo $(sort $(echo "-r" `echo - -n`) -n)'
+        ]
+
+        for command_line in test_cases:
+            cmds = shell.parse_command_line(command_line)
+            print(f"Test case: {command_line}")
+            for i, cmd in enumerate(cmds):
+                print(f"Command {i + 1}:")
+                print("  Switches:", cmd['switches'])
+                print("  Arguments:", cmd['arguments'])
+                print("  Redirections:", cmd['redirections'])
+                print("  Pipe from:", cmd['pipe_from'])
+            print()
+
+
+        print(shell.handle_environment_variables("$GRN$HOSTNAME$NORM:{} cpy\$ ").format(os.getcwd()))
+
+
+    shell_output.flush()
+
+
+# run it right now
+main()
+
+
 
