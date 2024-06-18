@@ -17,6 +17,11 @@ Notes:
 https://github.com/todbot/circuitpython-tricks
 Alternatives: if supervisor.runtime.serial_bytes_available:
 
+terminalio.Terminal().read(1) # for connected LCD things ?
+sys.stdin.read(1)	# for serial?
+https://chatgpt.com/share/41987e5d-4c73-432e-95cf-1e434479c1c1
+
+
 
 
 """
@@ -24,28 +29,73 @@ Alternatives: if supervisor.runtime.serial_bytes_available:
 import os
 import supervisor
 
+
 import sys
 import socketpool
 import wifi
 import time
+import supervisor
 
-# Custom output class for redirection and handling sockets/files
-class ShellOutput:
+def read_nonblocking():
+    if supervisor.runtime.serial_bytes_available:
+        return sys.stdin.read(1)
+    return None
+
+class CustomIO:
     def __init__(self):
-        self.sockets = []  # List of open TCP/IP sockets
-        self.files = []    # List of open file objects
+        self.input_content = ""
+        self.output_content = ""
+        self.sockets = []  # List of open TCP/IP sockets for both input and output
+        self.outfiles = []  # List of open file objects for output
+        self.infiles = []   # List of open file objects for input
         self.socket_buffers = {}  # Dictionary to store buffers for each socket
 
     # Initialize buffers for sockets
     def initialize_buffers(self):
         self.socket_buffers = {sock: "" for sock in self.sockets}
 
+    # Read input from stdin, sockets, or files
+    def read_input(self):
+
+        # Read from stdin
+        char = read_nonblocking()
+        if char:
+            self.input_content += char
+            if char == '\n':
+                line = self.input_content
+                self.input_content = ""
+                return line
+
+        # Read from input files
+        for file in self.infiles:
+            line = file.readline()
+            if line:
+                return line
+
+        # Read from sockets
+        for sock in self.sockets:
+            try:
+                data = sock.recv(1024).decode('utf-8')
+                if data:
+                    return data
+            except Exception as e:
+                continue
+
+        return None
+
+    def readline(self):
+        if self.input_content:
+            line = self.input_content
+            self.input_content = ""
+            return line
+        raise EOFError("No more input")
+
     # Send characters to all sockets and files
     def send_chars_to_all(self, chars):
         if chars:
             sys.stdout.write(chars)
-            # Send to all files
-            for file in self.files:
+            # Send to all output files
+            for file in self.outfiles:
                 try:
                     file.write(chars)
                     file.flush()
@@ -76,40 +126,31 @@ class ShellOutput:
 
         return any_buffer_non_empty
 
-    # Method to open a file
-    def open_file(self, filepath):
+    # Method to open an output file
+    def open_output_file(self, filepath):
         try:
             file = open(filepath, 'w')
-            self.files.append(file)
-            print("File opened successfully.")
+            self.outfiles.append(file)
+            print("Output file opened successfully.")
         except Exception as e:
-            print("File setup failed:", e)
+            print("Output file setup failed:", e)
+
+    # Method to open an input file
+    def open_input_file(self, filepath):
+        try:
+            file = open(filepath, 'r')
+            self.infiles.append(file)
+            print("Input file opened successfully.")
+        except Exception as e:
+            print("Input file setup failed:", e)
 
     # Method to open a socket
     def open_socket(self, address, port, timeout=10):
         try:
             pool = socketpool.SocketPool(wifi.radio)
             sock = pool.socket(pool.AF_INET, pool.SOCK_STREAM)
-            # sock.setblocking(False)
-
-            try:
-                sock.connect((address, port))
-            except OSError as e:
-                if e.errno != 119:  # EINPROGRESS
-                    raise
-
-            start_time = time.monotonic()
-            while True:
-                try:
-                    sock.send(b'') # cannot fail - nonblocking?
-                    break
-                except OSError as e:
-                    if e.errno != 11:  # EAGAIN, try again
-                        raise
-                    if time.monotonic() - start_time > timeout:
-                        raise TimeoutError("Timeout while waiting for socket connection")
-                    time.sleep(0.1)
-            
+            sock.settimeout(timeout)
+            sock.connect((address, port))
             self.sockets.append(sock)
             print("Socket connected successfully.")
             self.initialize_buffers()
@@ -121,26 +162,37 @@ class ShellOutput:
         while self.send_chars_to_all(""):
             time.sleep(0.1)  # Prevent a tight loop
 
-# Output redirector context manager
-class OutputRedirector:
-    def __init__(self, new_output):
-        self.new_output = new_output
+class IORedirector:
+    def __init__(self, custom_io):
+        self.custom_io = custom_io
+        self.old_input = None
         self.old_print = None
 
     def __enter__(self):
         import builtins
+        self.old_input = builtins.input
         self.old_print = builtins.print
+        builtins.input = self.custom_input
         builtins.print = self.custom_print
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         import builtins
+        builtins.input = self.old_input
         builtins.print = self.old_print
+
+    def custom_input(self, prompt=''):
+        self.custom_print(prompt, end='')
+        while True:
+            line = self.custom_io.read_input()
+            if line is not None:
+                return line.rstrip('\n')
+            time.sleep(0.1)  # Small delay to prevent high CPU usage
 
     def custom_print(self, *args, **kwargs):
         sep = kwargs.get('sep', ' ')
         end = kwargs.get('end', '\n')
         output = sep.join(map(str, args)) + end
-        self.new_output.send_chars_to_all(output)
+        self.custom_io.send_chars_to_all(output)
 
 
 
@@ -313,16 +365,16 @@ class sh:
 
 # Main function to demonstrate usage
 def main():
-    shell_output = ShellOutput()
-    # shell_output.open_socket('chrisdrake.com', 9887)	# works (might be blocking?)
-    # shell_output.open_file('/example.txt')		# works
 
-    # Use the custom context manager to redirect stdout
-    with OutputRedirector(shell_output):
-        #print("GET /lt.asp?cpy HTTP/1.0\r\nHost: chrisdrake.com\r\n\r\n")
+    custom_io = CustomIO()
+    #custom_io.open_socket('chrisdrake.com', 9887)
+    #custom_io.open_output_file('/example.txt')
+    #custom_io.open_input_file('/testin.txt')
 
+    # Use the custom context manager to redirect stdout and stdin
+    with IORedirector(custom_io):
 
-        # Example usage:
+        # test arg parsing
         shell = sh()
         test_cases = [
             r'ls --test=5 -abc "file name with spaces" $HOSTNAME $HOME | grep "pattern" > output.txt',
@@ -342,12 +394,19 @@ def main():
                 print("  Pipe from:", cmd['pipe_from'])
             print()
 
+        # test $VAR expansion
+        #print(shell.handle_environment_variables("$GRN$HOSTNAME$NORM:{} cpy\$ ").format(os.getcwd()))
+        # print("GET /lt.asp?cpy HTTP/1.0\r\nHost: chrisdrake.com\r\n\r\n")
 
-        print(shell.handle_environment_variables("$GRN$HOSTNAME$NORM:{} cpy\$ ").format(os.getcwd()))
+        # test input
+        while True:
+            user_input = input(shell.handle_environment_variables("$GRN$HOSTNAME$NORM:{} cpy\$ ").format(os.getcwd())) # the stuff in the middle is the prompt
+            if user_input:
+                print(f"Captured input: {user_input}")
+            time.sleep(0.1)  # Perform other tasks here
 
 
-    shell_output.flush()
-
+    custom_io.flush()
 
 # run it right now
 main()
