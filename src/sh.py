@@ -1,6 +1,6 @@
 # sh2.py
 
-__version__ = '1.0.0'  # Major.Minor.Patch
+__version__ = '1.0.20240623'  # Major.Minor.Patch
 
 """
 Created by Chris Drake.
@@ -18,7 +18,7 @@ https://github.com/todbot/circuitpython-tricks
 Alternatives: if supervisor.runtime.serial_bytes_available:
 
 terminalio.Terminal().read(1) # for connected LCD things ?
-sys.stdin.read(1)	# for serial?
+sys.stdin.read(1)        # for serial?
 https://chatgpt.com/share/41987e5d-4c73-432e-95cf-1e434479c1c1
 
 
@@ -36,10 +36,13 @@ import wifi
 import time
 import supervisor
 
+
+
 def read_nonblocking():
     if supervisor.runtime.serial_bytes_available:
         return sys.stdin.read(1)
     return None
+
 
 class CustomIO:
     def __init__(self):
@@ -61,6 +64,7 @@ class CustomIO:
         char = read_nonblocking()
         if char:
             self.input_content += char
+            self.send_chars_to_all(char) # echo it
             if char == '\n':
                 line = self.input_content
                 self.input_content = ""
@@ -93,6 +97,7 @@ class CustomIO:
     # Send characters to all sockets and files
     def send_chars_to_all(self, chars):
         if chars:
+            chars = chars.replace('\\n', '\r\n')  # Convert LF to CRLF
             sys.stdout.write(chars)
             # Send to all output files
             for file in self.outfiles:
@@ -160,7 +165,7 @@ class CustomIO:
     # Method to flush buffers
     def flush(self):
         while self.send_chars_to_all(""):
-            time.sleep(0.1)  # Prevent a tight loop
+            pass # time.sleep(0.1)  # Prevent a tight loop
 
 class IORedirector:
     def __init__(self, custom_io):
@@ -200,8 +205,23 @@ class sh:
     def __init__(self):
         self.history_file = "/history.txt"
 
-    def handle_environment_variables(self, value):
-        """Replace environment variables in the argument."""
+
+    # """For reading help and error messages etc out of a text file"""
+    def get_desc(self,keyword):
+        with open(__file__.rsplit('.', 1)[0] + '.txt', 'r') as file:   # /lib/sh.txt
+            for line in file:
+                try:
+                    key, description = line.split('\t', 1)
+                    if key == keyword:
+                        return self.subst_env(description.strip())
+                except: 
+                    return 'corrupt help file'
+
+        return None
+
+
+    # """Replace environment variables in the argument."""
+    def subst_envo(self, value):
         result = ''
         i = 0
         while i < len(value):
@@ -224,6 +244,42 @@ class sh:
                 result += value[i]
                 i += 1
         return result
+
+
+    def exp_env(self,start,value):
+        if value[start] == '{':
+            end = value.find('}', start)
+            var_name = value[start + 1:end]
+            if var_name.startswith('!'):
+                var_name = os.getenv(var_name[1:], f'${{{var_name}}}')
+                var_value = os.getenv(var_name, f'${{{var_name}}}')
+            else:
+                var_value = os.getenv(var_name, f'${{{var_name}}}')
+            return end + 1, var_value
+        else:
+            end = start
+            while end < len(value) and (value[end].isalpha() or value[end].isdigit() or value[end] == '_'):
+                end += 1
+            var_name = value[start:end]
+            var_value = os.getenv(var_name, f'${var_name}')
+            return end, var_value
+
+    def subst_env(self, value):
+        result = ''
+        i = 0
+        while i < len(value):
+            if value[i] == '\\' and i + 1 < len(value) and value[i + 1] == '$':
+                result += '$'
+                i += 2
+            elif value[i] == '$':
+                i += 1
+                i, expanded = self.exp_env(i,value)
+                result += expanded
+            else:
+                result += value[i]
+                i += 1
+        return result
+
 
     def parse_command_line(self, command_line):
         def split_command(command_line):
@@ -317,7 +373,7 @@ class sh:
                     if '=' in part:
                         key, value = part[2:].split('=', 1)
                         if not (value.startswith("'") and value.endswith("'")):
-                            value = self.handle_environment_variables(substitute_backticks(value))
+                            value = self.subst_env(substitute_backticks(value))
                         current_cmd['switches'][key] = value
                     else:
                         current_cmd['switches'][part[2:]] = True
@@ -332,7 +388,7 @@ class sh:
                             break
                 else:
                     if not (part.startswith("'") and part.endswith("'")):
-                        part = self.handle_environment_variables(substitute_backticks(part))
+                        part = self.subst_env(substitute_backticks(part))
                     current_cmd['arguments'].append(part)
                 i += 1
 
@@ -356,6 +412,15 @@ class sh:
         elif cmd['arguments'][0] == 'grep':
             pattern = cmd['arguments'][1]
             return "\n".join(line for line in ["file1.txt", "file2.txt", "file3.txt"] if pattern in line)
+        elif cmd['arguments'][0] == 'man':
+            if len(cmd['arguments']) > 1:
+                keyword = cmd['arguments'][1]
+                description = self.get_desc(keyword)
+                if description:
+                    description = self.subst_env(f"\n${{WHT}}{keyword}${{NORM}} - ") + description
+                    return description
+                return self.get_desc('1').format(keyword)       # f"No manual entry for {keyword}"
+            return self.get_desc('2')                           # "Usage: man [keyword]"
         return "<executed {}>".format(command)
 
 
@@ -395,14 +460,17 @@ def main():
             print()
 
         # test $VAR expansion
-        #print(shell.handle_environment_variables("$GRN$HOSTNAME$NORM:{} cpy\$ ").format(os.getcwd()))
+        #print(shell.subst_env("$GRN$HOSTNAME$NORM:{} cpy\$ ").format(os.getcwd()))
         # print("GET /lt.asp?cpy HTTP/1.0\r\nHost: chrisdrake.com\r\n\r\n")
+
+        #ng: print("helpme");help("modules");print("grr")
 
         # test input
         while True:
-            user_input = input(shell.handle_environment_variables("$GRN$HOSTNAME$NORM:{} cpy\$ ").format(os.getcwd())) # the stuff in the middle is the prompt
+            user_input = input(shell.subst_env("$GRN$HOSTNAME$NORM:{} cpy\$ ").format(os.getcwd())) # the stuff in the middle is the prompt
             if user_input:
                 print(f"Captured input: {user_input}")
+                print(shell.execute_command(user_input))
             time.sleep(0.1)  # Perform other tasks here
 
 
