@@ -1,3 +1,4 @@
+0	{} command not found
 1	No manual entry for {}
 2	Usage: man [keyword]
 dir	List directory contents (alias for ls -Flatr)
@@ -15,6 +16,7 @@ du	Estimate file space usage\n$GRN -h $NORM Human-readable sizes\n$GRN -s $NORM 
 rmdir	Remove empty directories\n$GRN --ignore-fail-on-non-empty $NORM Ignore each failure to remove a directory that is not empty
 touch	Change file timestamps or create an empty file\n$GRN -c $NORM Do not create any files\n$GRN -d $NORM Use the specified time instead of the current time
 vi	vim-like Text editor
+man	Display manual pages for commands\n$GRN man <command> $NORM Show the manual page for the specified command
 nano	Text editor
 edit	Text editor
 grep	Search text using patterns\n$GRN -i $NORM Ignore case distinctions\n$GRN -r $NORM Read all files under each directory recursively\n$GRN -v $NORM Select non-matching lines
