@@ -1,3 +1,4 @@
+version	1.0.20240626
 0	{} command not found
 1	No manual entry for {}
 2	Usage: man [keyword]
@@ -20,9 +21,11 @@ find	Search for files in a directory hierarchy\n$GRN find <path> $NORM Start sea
 sort	Sort lines of text files\n$GRN -r $NORM Reverse the result of comparisons\n$GRN -n $NORM Compare according to string numerical value
 mkdir	Make directories\n$GRN -p $NORM Create parent directories as needed
 df	Report file system disk space usage\n$GRN -h $NORM Human-readable sizes\n$GRN -i $NORM Display inode information
+free	show circuitpython memory usage
 du	Estimate file space usage\n$GRN -h $NORM Human-readable sizes\n$GRN -s $NORM Display only a total for each argument
 rmdir	Remove empty directories\n$GRN --ignore-fail-on-non-empty $NORM Ignore each failure to remove a directory that is not empty
-touch	Change file timestamps or create an empty file\n$GRN -c $NORM Do not create any files\n$GRN -d $NORM Use the specified time instead of the current time
+touch	Change file timestamps or create an empty file
+XXtouch	Change file timestamps or create an empty file\n$GRN -c $NORM Do not create any files\n$GRN -d $NORM Use the specified time instead of the current time
 vi	vim-like Text editor
 man	Display manual pages for commands\n$GRN man <command> $NORM Show the manual page for the specified command
 nano	Text editor
@@ -76,6 +79,7 @@ now	Display the current date and time
 who	Show who is logged on
 which	Locate a command
 clear	Clear the terminal screen
+cls	Clear the terminal screen
 reboot	Reboot the system
 poweroff	Halt, power-off, or reboot the machine
 passwd	Change user password
@@ -83,7 +87,7 @@ sleep	Delay for a specified amount of time
 unalias	Remove alias definitions
 alias	Create an alias for a command
 exit	Exit the shell
-help	Display help information about built-in commands
+help	Display help information about built-in commands. use$GRN help all$NORM to see detailed information. see also:$YEL man$NORM
 md5sum	Calculate MD5 checksums
 sha1sum	Calculate SHA-1 checksums
 sha256sum	Calculate SHA-256 checksums
@@ -101,7 +105,7 @@ freq	Set a specific analogue output to a GPIO pin\n$GRN freq <pin> <frequency> $
 display	Control the screen
 print	Write some text onto the screen\n$GRN print <text> $NORM Display the specified text
 showbmp	Put a graphic onto the screen\n$GRN showbmp <file> $NORM Display the specified BMP file
-clear	Erase the screen
+clearlcd	Erase the LCD screen
 mountsd	Attach an SD card
 umount	Un-attach the SD card
 run	Execute a Python program from the shell\n$GRN run <file> $NORM Run the specified Python file
