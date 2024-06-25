@@ -40,7 +40,7 @@ Everything is written to save RAM and Flash; command bytecode is not loaded if y
 - `head` - Output the first part of files  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 - `echo` - Display a line of text
 - `more` - View file contents page-by-page  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
-- `wc` - Word, line, character, and byte count  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `wc` - Word, line, character, and byte count
 - `zcat` - Concatenate compressed files and output  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 - `less` - View file contents page-by-page with backward movement (similar to `more`)  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 - `hexedit` - View and edit files in hexadecimal format  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
@@ -48,9 +48,9 @@ Everything is written to save RAM and Flash; command bytecode is not loaded if y
 ### System Information
 - `history` - Command history
 - `uname` - Print system information  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
-- `uptime` - Tell how long the system has been running  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `uptime` - Tell how long the system has been running
 - `hostname` - Show or set the system's hostname  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
-- `date` - Display or set the system date and time  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `date` - Display or set the system date and time
 - `whois` - Query domain name information  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 - `env` - Display or set environment variables
 - `setenv` - Set environment variables (equivalent of `export` in some contexts)
@@ -62,93 +62,93 @@ Everything is written to save RAM and Flash; command bytecode is not loaded if y
 - `curl` - Transfer data from or to a server
 - `wget` - Non-interactive network downloader (alias for `curl`)
 - `ping` - Send ICMP ECHO_REQUEST to network hosts
-- `dig` - DNS lookup
-- `ssh` - OpenSSH remote login client
-- `scp` - Secure copy (remote file copy program)
-- `telnet` - User interface to the TELNET protocol
-- `nc` - netcat arbitrary TCP and UDP connections and listens
-- `ifconfig` - Configure network interfaces
-- `ftp` - File Transfer Protocol client
+- `dig` - DNS lookup  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `ssh` - OpenSSH remote login client  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `scp` - Secure copy (remote file copy program)  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `telnet` - User interface to the TELNET protocol  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `nc` - netcat arbitrary TCP and UDP connections and listens  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `ifconfig` - Configure network interfaces  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `ftp` - File Transfer Protocol client  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 
 ### Package Management
-- `pip` - Package manager - aliases to help with installing 
-- `yum` - Package manager - alias for `pip`
-- `apt` - Advanced Package Tool - alias for `pip`
+- `pip` - Package manager - aliases to help with installing   [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `yum` - Package manager - alias for `pip`  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `apt` - Advanced Package Tool - alias for `pip`  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 
 ### File Compression
-- `tar` - Archive files
-- `gzip` - Compress files
-- `gunzip` - Decompress files
-- `bzip2` - Compress files
-- `bunzip2` - Decompress files
+- `tar` - Archive files  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `gzip` - Compress files  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `gunzip` - Decompress files  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `bzip2` - Compress files  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `bunzip2` - Decompress files  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 
 ### Development Tools
-- `python` - inbuilt - alias for `run`
+- `python` - inbuilt - alias for `run`  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 - `sh` - inbuilt - aliasthis tool itself (you can run commands from a .sh file through this shell)
-- `git` - Distributed version control system
-- `diff` - Compare files line by line
+- `git` - Distributed version control system  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `diff` - Compare files line by line  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 
 ### Miscellaneous Utilities
-- `locate` - Find files by name
-- `sz` - Send files (ZModem)
-- `rz` - Receive files (ZModem)
-- `now` - Display the current date and time (alias for `date`)
-- `who` - Show who is logged on
+- `locate` - Find files by name  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `sz` - Send files (ZModem)  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `rz` - Receive files (ZModem)  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `now` - Display the current date and time (alias for `date`)  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `who` - Show who is logged on  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 - `which` - Locate a command
 - `clear` - Clear the terminal screen
 - `reboot` - Reboot the system
-- `poweroff` - Halt, power-off, or reboot the machine
-- `passwd` - Change user password
+- `poweroff` - Halt, power-off, or reboot the machine  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `passwd` - Change user password  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 - `sleep` - Delay for a specified amount of time
-- `unalias` - Remove alias definitions
-- `alias` - Create an alias for a command
+- `unalias` - Remove alias definitions  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `alias` - Create an alias for a command  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 - `exit` - Exit the shell
 - `help` - Display help information about built-in commands
-- `md5sum` - Calculate MD5 checksums
-- `sha1sum` - Calculate SHA-1 checksums
-- `sha256sum` - Calculate SHA-256 checksums
-- `hexedit` - View and edit files in hexadecimal format
+- `md5sum` - Calculate MD5 checksums  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `sha1sum` - Calculate SHA-1 checksums  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `sha256sum` - Calculate SHA-256 checksums  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `hexedit` - View and edit files in hexadecimal format  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 
 ### Hardware Extensions
-- `blink` - flash the device LED
-- `set` - set the state of a GPIO pin
-- `pins` - display the input coming in to a GPIO pin
-- `adc` - display the analogue input from a GPIO
-- `button` - display the state of the default button
-- `photo` - take a photo from the device camera
-- `neo_blink` - set one or more neopixel LED colours
-- `blink_all_pins` - output pin numbers using TTL 1's and 0's to identify pins (e.g. 7 x 1-0 pulses for GPIO7)
-- `beep` - send an analogue tone to the default speaker
-- `freq` - set a specific analogue output to a GPIO pin (e.g. move a servo)
+- `blink` - flash the device LED  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `set` - set the state of a GPIO pin  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `pins` - display the input coming in to a GPIO pin  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `adc` - display the analogue input from a GPIO  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `button` - display the state of the default button  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `photo` - take a photo from the device camera  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `neo_blink` - set one or more neopixel LED colours  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `blink_all_pins` - output pin numbers using TTL 1's and 0's to identify pins (e.g. 7 x 1-0 pulses for GPIO7)  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `beep` - send an analogue tone to the default speaker  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `freq` - set a specific analogue output to a GPIO pin (e.g. move a servo)  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 ####
-- `display` - control the screen
-- `print` - write some text onto the screen
-- `showbmp` - put a graphic onto the screen
-- `clear` - erase the screen
+- `display` - control the screen  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `print` - write some text onto the screen  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `showbmp` - put a graphic onto the screen  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `clearlcd` - erase the LCD screen
 ####
-- `mountsd` - attach an SD card
-- `umount` - un-attach it
+- `mountsd` - attach an SD card  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `umount` - un-attach it  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 ####
-- `run` - execute a python program from the shell - does progressive-compilation to save space.
+- `run` - execute a python program from the shell - does progressive-compilation to save space.  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 ####
-- `espnowreceiver` - show incoming espnow messages
-- `espnowsender` - send espnow messages
+- `espnowreceiver` - show incoming espnow messages  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `espnowsender` - send espnow messages  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 ####
-- `hardreset` - reboot the chip
+- `hardreset` - reboot the chip  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 ####
-- `memtest` - test memory
+- `memtest` - test memory  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 ####
-- `bluescan` - show visible bluetooth devices and data
-- `scani2c` - show attached I2C devices found
+- `bluescan` - show visible bluetooth devices and data  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `scani2c` - show attached I2C devices found  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 ####
-- `temperature` - print current temperature
-- `mag` - show the X, Y, and Z field strength from a magnetometer
-- `gps` - display your latitude and longitude
-- `radar` - output data from your attached radar device
+- `temperature` - print current temperature  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `mag` - show the X, Y, and Z field strength from a magnetometer  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `gps` - display your latitude and longitude  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `radar` - output data from your attached radar device  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 ####
-- `telnetd` - listen for terminal input over TCP/IP
+- `telnetd` - listen for terminal input over TCP/IP  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 ####
-- `wifi` - control your wifi settings
+- `wifi` - control your wifi settings  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 
 
 ## Unimplimented at present
