@@ -2,7 +2,7 @@
 1	No manual entry for {}
 2	Usage: man [keyword]
 dir	List directory contents (alias for ls -Flatr)
-ls	List directory contents\n$GRN -l $NORM List in long format\n$GRN -a $NORM Include hidden files\n$GRN -h $NORM Human-readable sizes\n$GRN -F $NORM append file classification indicator\n$GRN -t $NORM sort by time\n$GRN -r $NORM reverse order sort
+ls	List directory contents\n$GRN -l $NORM List in long format\n$GRN -a $NORM Include hidden files\n$GRN -h $NORM Human-readable sizes\n$GRN -F $NORM append file classification indicator\n$GRN -t $NORM sort by time\n$GRN -S $NORM sort by size\n$GRN -r $NORM reverse order sort
 cd	Change directory\n$GRN cd <directory> $NORM Change to the specified directory
 mv	Move or rename files or directories\n$GRN mv <source> <destination> $NORM Move source to destination\n$GRN -i $NORM Prompt before overwrite\n$GRN -f $NORM Force move by overwriting destination files
 rm	Remove files or directories\n$GRN -r $NORM Remove directories and their contents recursively\n$GRN -f $NORM Ignore nonexistent files, never prompt

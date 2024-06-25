@@ -15,15 +15,15 @@ Everything is written to save RAM and Flash; command bytecode is not loaded if y
 ## Supported Commands
 
 ### File Management
-- `dir` - List directory contents (similar to `ls`)
+- `dir` - List directory contents (alias for `ls -Flatr`)
 - `cd` - Change directory
 - `mv` - Move or rename files or directories
-- `ls` - List directory contents
+- `ls` - List directory contents (supports -F -l -a -t -r -h -S flags)
 - `rm` - Remove files or directories
 - `cp` - Copy files or directories
 - `pwd` - Print working directory
 - `find` - Search for files in a directory hierarchy
-- `sort` - Sort lines of text files
+- `sort` - Sort lines of text files (supports -r flag)
 - `mkdir` - Make directories
 - `df` - Report file system disk space usage
 - `du` - Estimate file space usage
