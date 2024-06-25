@@ -1,6 +1,6 @@
 # sh.py
 
-__version__ = '1.0.20240623'  # Major.Minor.Patch
+__version__ = '1.0.20240626'  # Major.Minor.Patch
 
 # Created by Chris Drake.
 # Linux-like shell interface for CircuitPython.  https://github.com/gitcnd/cpy_shell
@@ -58,15 +58,17 @@ class CustomIO:
     def read_input(self):
 
         # Read from stdin
-        char = read_nonblocking()
-        if char:
-            self.send_chars_to_all(char) # echo it
-            if char == '\n':
-                line = self.input_content
-                self.input_content = ""
-                self.add_hist(line)
-                return line
-            self.input_content += char # don't append \n to the commandline
+        char=1 # keep doing this 'till we get nothing more
+        while char:
+            char = read_nonblocking()
+            if char:
+                self.send_chars_to_all(char) # echo it
+                if char == '\n':
+                    line = self.input_content
+                    self.input_content = ""
+                    self.add_hist(line)
+                    return line
+                self.input_content += char # don't append \n to the commandline
 
         # Read from input files
         for file in self.infiles:
@@ -555,30 +557,35 @@ class sh:
         #print("executing: {}".format(cmdenv['line'])) #DBG
 
         # internal commands
-        if cmd == 'echo':
-            print( cmdenv['line'].split(' ', 1)[1] if ' ' in cmdenv['line'] else '') # " ".join(cmdenv['args'][1:])
+        if cmd == 'exit':
+            return 0
+        #if cmd == 'echo':
+        #    print( cmdenv['line'].split(' ', 1)[1] if ' ' in cmdenv['line'] else '') # " ".join(cmdenv['args'][1:])
         #elif cmd == 'sort':
         #    return "\n".join(sorted(cmdenv['args'][1:], reverse='-r' in cmdenv['sw']))
         #elif cmd == 'ls':
         #    return "file1.txt\nfile2.txt\nfile3.txt"
 
 
-        for mod in ["sh0", "sh1"]:
+        for mod in ["sh0", "sh1", "sh2"]:
             gc.collect()
             module = __import__(mod)
 
             # sh_module = sys.modules['sh0']
             command_function = getattr(module, cmd,None)
             if command_function:
+                #print(f"running {mod}.{cmd}")
                 ret=command_function(self,cmdenv)  # Run the command
                 del sys.modules[mod]
                 gc.collect()
-                return ret
+                return 1
+                # return ret
                 break
             del sys.modules[mod]
             gc.collect()
 
         print(self.get_desc('0').format(cmd)) # {} command not found
+        return 1 # keep running
     
 
 
@@ -607,18 +614,28 @@ def main():
         #ng: print("helpme");help("modules");print("grr")
 
         # test input
-        while True:
+        run=1
+        while run>0:
+            run=1
             user_input = input(shell.subst_env("$GRN$HOSTNAME$NORM:{} cpy\$ ").format(os.getcwd())) # the stuff in the middle is the prompt
             if user_input:
-                #print(f"Captured input: {user_input}")
-                #print(shell.execute_command(user_input))
-                shell.execute_command(user_input) # IORedirector takes care of sending the "print" statements from these to the right place(s)
-            time.sleep(0.1)  # Perform other tasks here
+                #hex_values = ' '.join(f'{ord(c):02x}' for c in user_input)
+                #print("input=0x " + hex_values)
+                # print(f"Captured input: {user_input}")
+                # print(f"input=0x{' '.join(f'{ord(c):02x}' for c in user_input)}") # print(f"input=0x {user_input.hex()}")
+                # print(shell.execute_command(user_input))
+                run=2 # bypass the sleep 1 time
+                try:
+                    run=shell.execute_command(user_input) # IORedirector takes care of sending the "print" statements from these to the right place(s)
+                except KeyboardInterrupt:
+                    print("^C")
+            if run>1: time.sleep(0.1)  # Perform other tasks here
 
 
     custom_io.flush()
 
 # run it right now
 main()
-
+if "sh" in sys.modules:
+    del sys.modules["sh"] # so we can re-run us later
 

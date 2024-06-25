@@ -1,6 +1,6 @@
 # sh0.py
 
-__version__ = '1.0.20240624'  # Major.Minor.Patch
+__version__ = '1.0.20240626'  # Major.Minor.Patch
 
 # Created by Chris Drake.
 # Linux-like shell interface for CircuitPython.  https://github.com/gitcnd/cpy_shell
@@ -20,7 +20,7 @@ def _ee(shell, cmdenv, e):
     print(shell.get_desc('10').format(cmdenv['args'][0],e)) # {}: {}
 
 
-def ls(shell,cmdenv):	# impliments -F -l -a -t -r -S -h
+def ls(shell,cmdenv):   # impliments -F -l -a -t -r -S -h
     args=cmdenv['args']
     tsort=[]
 
@@ -28,7 +28,7 @@ def ls(shell,cmdenv):	# impliments -F -l -a -t -r -S -h
         for f in sorted(items, reverse=bool(cmdenv['sw'].get('r'))):
             if f.startswith('.') and not cmdenv['sw'].get('a'): continue
             pt = os.stat(f)
-	    fsize = shell.human_size(pt[6]) if cmdenv['sw'].get('h') else pt[6]
+            fsize = shell.human_size(pt[6]) if cmdenv['sw'].get('h') else pt[6]
             mtime = time.localtime(pt[7])
             mtime_str = f"{mtime.tm_year}-{mtime.tm_mon:02}-{mtime.tm_mday:02} {mtime.tm_hour:02}:{mtime.tm_min:02}.{mtime.tm_sec:02}"
             tag = "/" if cmdenv['sw'].get('F') and pt[0] & 0x4000 else ""
@@ -110,6 +110,10 @@ def pwd(shell, cmdenv):
     print(os.getcwd())
 
 
+def echo(shell, cmdenv):
+    print( cmdenv['line'].split(' ', 1)[1] if ' ' in cmdenv['line'] else '') # " ".join(cmdenv['args'][1:])
+
+
 def mkdir(shell, cmdenv):
     if len(cmdenv['args']) < 2:
          _ea(shell, cmdenv) # print("mkdir: missing file operand")
@@ -183,3 +187,53 @@ def df(shell, cmdenv):
         print(f"/ {shell.human_size(total_size)} {shell.human_size(used_size)} {shell.human_size(free_size)}")
     except OSError as e:
         _ee(shell, cmdenv,e) # print(f"{}: {e}")
+
+
+def wc(shell, cmdenv):
+    if len(cmdenv['args']) < 2:
+        _ea(shell, cmdenv)  # print("wc: missing file operand")
+    else:
+        path = cmdenv['args'][1]
+        try:
+            with open(path, 'rb') as file:
+                lines = 0
+                words = 0
+                bytes_count = 0
+                while True:
+                    chunk = file.read(512)
+                    if not chunk:
+                        break
+                    lines += chunk.count(b'\n')
+                    words += len(chunk.split())
+                    bytes_count += len(chunk)
+                print(f"{lines} {words} {bytes_count} {path}")
+        except Exception as e:
+            _ee(shell, cmdenv, e)  # print(f"wc: {e}")
+
+
+def clear(shell, cmdenv):
+    print("\033[2J\033[H", end='')  # ANSI escape codes to clear screen
+
+
+def cls(shell, cmdenv):
+    print("\033[2J", end='')  # ANSI escape code to clear screen
+
+
+def _scrsize(shell, cmdenv):
+    print("\033[s\0337\033[999C\033[999B\033[6n\r\033[u\0338", end='')  # ANSI escape code to save cursor position, move to lower-right, get cursor position, then restore cursor position: responds with \x1b[130;270R
+    #ng: print("\033[18t", end='')  # get screen size: does nothing
+
+
+def _termtype(shell, cmdenv):
+    print("\033[c\033[>0c", end='')  # get type and extended type of terminal. responds with: 1b 5b 3f 36 32 3b 31 3b 32 3b 36 3b 37 3b 38 3b 39 63    1b 5b 3e 31 3b 31 30 3b 30 63
+    #                                                                                         \033[?62;1;2;6;7;8;9c (Device Attributes DA)             \033[>1;10;0c (Secondary Device AttributesA)
+    # 62: VT220 terminal.  1: Normal cursor keys.  2: ANSI terminal.  6: Selective erase.  7: Auto-wrap mode.  8: XON/XOFF flow control.  9: Enable line wrapping.
+    # 1: VT100 terminal.  10: Firmware version 1.0.  0: No additional information.
+
+
+#def termtitle(shell, cmdenv):
+#    if len(cmdenv['args']) < 2:
+#        _ea(shell, cmdenv)  # print("cat: missing file operand")
+#    else:
+#        print(f"\033]20;\007\033]0;{cmdenv['args'][1]}\007", end='')  # get current title, then set a new title: does nothing
+
