@@ -11,6 +11,16 @@ __version__ = '1.0.20240624'  # Major.Minor.Patch
 def sort(shell,cmdenv):
     return "\n".join(sorted(cmdenv['args'][1:], reverse='-r' in cmdenv['sw']))
 
+def man(shell,cmdenv):
+    if len(cmdenv['args']) > 1:
+        keyword = cmdenv['args'][1]
+        description = shell.get_desc(keyword)
+        if description:
+            print(shell.subst_env(f"\n${{WHT}}{keyword}${{NORM}} - " + description)) # we deliberately want the description $VARS to be expanded
+        else:
+            print(shell.get_desc('1').format(keyword))       # f"No manual entry for {keyword}"
+    else:
+        print(shell.get_desc('2'))                       # "Usage: man [keyword]"
 
 def test(shell,cmdenv):
 

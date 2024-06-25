@@ -1,6 +1,12 @@
 0	{} command not found
 1	No manual entry for {}
 2	Usage: man [keyword]
+3	File write exception: {}
+4	Socket send exception: {}
+5	Output file setup failed: {}
+6	Input file setup failed: {}
+7	Socket setup failed: {}
+8	Failed to get NTP time: {}
 dir	List directory contents (alias for ls -Flatr)
 ls	List directory contents\n$GRN -l $NORM List in long format\n$GRN -a $NORM Include hidden files\n$GRN -h $NORM Human-readable sizes\n$GRN -F $NORM append file classification indicator\n$GRN -t $NORM sort by time\n$GRN -S $NORM sort by size\n$GRN -r $NORM reverse order sort
 cd	Change directory\n$GRN cd <directory> $NORM Change to the specified directory

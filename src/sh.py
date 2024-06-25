@@ -118,7 +118,7 @@ class CustomIO:
                     file.write(chars)
                     file.flush()
                 except Exception as e:
-                    print(f"File write exception: {e}")
+                    print(self.get_desc('3').format(e)) #  File write exception: {}
 
         # Flag to check if any buffer has remaining data
         any_buffer_non_empty = False
@@ -133,7 +133,7 @@ class CustomIO:
                 else:
                     sock.send(chars.encode('utf-8'))
             except Exception as e:
-                print(f"Socket send exception: {e}")
+                print(self.get_desc('4').format(e)) # Socket send exception: {}
                 self.socket_buffers[sock] += chars
                 if len(self.socket_buffers[sock]) > 80:
                     self.socket_buffers[sock] = self.socket_buffers[sock][-80:]  # Keep only the last 80 chars
@@ -149,18 +149,18 @@ class CustomIO:
         try:
             file = open(filepath, 'w')
             self.outfiles.append(file)
-            print("Output file opened successfully.")
+            #print("Output file opened successfully.")
         except Exception as e:
-            print("Output file setup failed:", e)
+            print(self.get_desc('5').format(e)) # Output file setup failed: {}
 
     # Method to open an input file
     def open_input_file(self, filepath):
         try:
             file = open(filepath, 'r')
             self.infiles.append(file)
-            print("Input file opened successfully.")
+            #print("Input file opened successfully.")
         except Exception as e:
-            print("Input file setup failed:", e)
+            print(self.get_desc('6').format(e)) # Input file setup failed: {}
 
     # Method to open a socket
     def open_socket(self, address, port, timeout=10):
@@ -170,10 +170,10 @@ class CustomIO:
             sock.settimeout(timeout)
             sock.connect((address, port))
             self.sockets.append(sock)
-            print("Socket connected successfully.")
+            #print("Socket connected successfully.") #DBG
             self.initialize_buffers()
         except Exception as e:
-            print("Socket setup failed:", e)
+            print(self.get_desc('7').format(e)) # Socket setup failed: {}
 
     """ # Method to open a listening socket on port 23 for Telnet
     def open_listening_socket(self, port=23):
@@ -214,7 +214,7 @@ class CustomIO:
             rtc.RTC().datetime = time.localtime(struct.unpack("!I", buf[40:44])[0] - 2208988800) # NTP timestamp starts from 1900, Unix from 1970
     
         except Exception as e:
-            print("Failed to get NTP time:", e)
+            print(self.get_desc('8').format(e)) # Failed to get NTP time: {}
         finally:
             sock.close()
         self.add_hist("#boot")
@@ -450,20 +450,20 @@ class sh:
             while '`' in value or '$(' in value:
                 if '`' in value:
                     start = value.find('`')
-                    print(f"` start={start} value={value}")
+                    #print(f"` start={start} value={value}")
                     end = value.find('`', start + 1)
-                    print(f"` end={end} value={value}")
+                    #print(f"` end={end} value={value}")
                     if end == -1:
                         break
                     command = value[start + 1:end]
-                    print(f"` command={command}")
+                    #print(f"` command={command}")
                     value = value[:start] + self.execute_command(command) + value[end + 1:]
-                    print(f"` new value={value}")
+                    #print(f"` new value={value}")
                 if '$(' in value:
                     start = value.find('$(')
-                    print(f"$( start={start} value={value}")
+                    #print(f"$( start={start} value={value}")
                     end = start + 2
-                    print(f"$( end={end} value={value}")
+                    #print(f"$( end={end} value={value}")
                     open_parens = 1
                     while open_parens > 0 and end < len(value):
                         if value[end] == '(':
@@ -473,9 +473,9 @@ class sh:
                         end += 1
                     command = value[start + 2:end - 1]
                     command = value[start + 2:end]
-                    print(f"$( command={command}")
+                    #print(f"$( command={command}")
                     value = value[:start] + self.execute_command(command) + value[end:]
-                    print(f"$( new value={value}")
+                    #print(f"$( new value={value}")
             return value
 
         
@@ -552,27 +552,18 @@ class sh:
         parts = self.parse_command_line(command)
         cmdenv = parts[0]  # Assuming simple commands for mock execution
         cmd=cmdenv['args'][0]
-        print("executing: {}".format(cmdenv['line']))
+        #print("executing: {}".format(cmdenv['line'])) #DBG
 
         # internal commands
         if cmd == 'echo':
-            return cmdenv['line'].split(' ', 1)[1] if ' ' in cmdenv['line'] else '' # " ".join(cmdenv['args'][1:])
+            print( cmdenv['line'].split(' ', 1)[1] if ' ' in cmdenv['line'] else '') # " ".join(cmdenv['args'][1:])
         #elif cmd == 'sort':
         #    return "\n".join(sorted(cmdenv['args'][1:], reverse='-r' in cmdenv['sw']))
         #elif cmd == 'ls':
         #    return "file1.txt\nfile2.txt\nfile3.txt"
-        elif cmd == 'man':
-            if len(cmdenv['args']) > 1:
-                keyword = cmdenv['args'][1]
-                description = self.get_desc(keyword)
-                if description:
-                    description = self.subst_env(f"\n${{WHT}}{keyword}${{NORM}} - ") + description
-                    return description
-                return self.get_desc('1').format(keyword)       # f"No manual entry for {keyword}"
-            return self.get_desc('2')                           # "Usage: man [keyword]"
 
 
-	for mod in ["sh0", "sh1"]:
+        for mod in ["sh0", "sh1"]:
             gc.collect()
             module = __import__(mod)
 
@@ -620,7 +611,8 @@ def main():
             user_input = input(shell.subst_env("$GRN$HOSTNAME$NORM:{} cpy\$ ").format(os.getcwd())) # the stuff in the middle is the prompt
             if user_input:
                 #print(f"Captured input: {user_input}")
-                print(shell.execute_command(user_input))
+                #print(shell.execute_command(user_input))
+                shell.execute_command(user_input) # IORedirector takes care of sending the "print" statements from these to the right place(s)
             time.sleep(0.1)  # Perform other tasks here
 
 
