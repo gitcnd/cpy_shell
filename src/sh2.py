@@ -273,3 +273,7 @@ def curl(shell, cmdenv):
     except Exception as e:
         print(f"Error fetching {url}: {e}")
 
+
+def wget(shell, cmdenv):
+    return curl(shell, cmdenv)
+

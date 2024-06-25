@@ -51,8 +51,8 @@ setenv	Set environment variables
 export	Set environment variables
 printenv	Print all or part of the environment
 diff	Compare files line by line\n$GRN -u $NORM Output in unified format\n$GRN -q $NORM Report only when files differ
-curl	Transfer data from or to a server\n$GRN -O $NORM Write output to a file named as the remote file\n$GRN -o $NORM Write output to a specified file
-wget	Non-interactive network downloader\n$GRN -O $NORM Write output to a file named as the remote file\n$GRN -o $NORM Write output to a specified file
+curl	Transfer data from or to a server\n$GRN -i $NORM show headers\n$GRN -I $NORM do a HEAD request\n$GRN --data=myvar=value $NORM send POST data\n$GRN -O $NORM Write output to a file named as the remote file\n$GRN --output=file $NORM Write output to a specified file
+wget	Non-interactive network downloader - see$YEL curl$NORM command
 ping	Send ICMP ECHO_REQUEST to network hosts\n$GRN -c $NORM Stop after sending count ECHO_REQUEST packets
 dig	DNS lookup
 ssh	OpenSSH remote login client
