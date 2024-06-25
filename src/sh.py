@@ -537,31 +537,14 @@ class sh:
 
         return cmds
 
-    def execute_commandN(self, command):
-        # """Execute a command and return its output. Placeholder for actual execution logic."""
-        parts = self.parse_command_line(command)
-        cmd = parts[0]  # Assuming simple commands for mock execution
-        if cmd['args'][0] == 'ls':
-            #print(cmd)
-            return "file1.txt\nfile2.txt\nfile3.txt"
-        elif cmd['args'][0] == 'echo':
-            return cmd['line'].split(' ', 1)[1] if ' ' in cmd['line'] else '' # " ".join(cmd['args'][1:])
-        elif cmd['args'][0] == 'sort':
-            return "\n".join(sorted(cmd['args'][1:], reverse='-r' in cmd['sw']))
-        elif cmd['args'][0] == 'grep':
-            pattern = cmd['args'][1]
-            return "\n".join(line for line in ["file1.txt", "file2.txt", "file3.txt"] if pattern in line)
-        elif cmd['args'][0] == 'man':
-            if len(cmd['args']) > 1:
-                keyword = cmd['args'][1]
-                description = self.get_desc(keyword)
-                if description:
-                    description = self.subst_env(f"\n${{WHT}}{keyword}${{NORM}} - ") + description
-                    return description
-                return self.get_desc('1').format(keyword)       # f"No manual entry for {keyword}"
-            return self.get_desc('2')                           # "Usage: man [keyword]"
-        return "<executed {}>".format(command)
 
+    def human_size(self,size):
+        # Convert bytes to human-readable format
+        for unit in ['B', 'K', 'M', 'G', 'T']:
+            if size < 1024:
+                return f"{round(size):,}{unit}"
+            size /= 1024
+        return f"{round(size):,}P"  # Handle very large sizes as petabytes
 
     
     def execute_command(self,command):
@@ -569,15 +552,15 @@ class sh:
         parts = self.parse_command_line(command)
         cmdenv = parts[0]  # Assuming simple commands for mock execution
         cmd=cmdenv['args'][0]
-        print("executing {}".format(cmdenv['line']))
+        print("executing: {}".format(cmdenv['line']))
 
         # internal commands
         if cmd == 'echo':
             return cmdenv['line'].split(' ', 1)[1] if ' ' in cmdenv['line'] else '' # " ".join(cmdenv['args'][1:])
         #elif cmd == 'sort':
         #    return "\n".join(sorted(cmdenv['args'][1:], reverse='-r' in cmdenv['sw']))
-        elif cmd == 'ls':
-            return "file1.txt\nfile2.txt\nfile3.txt"
+        #elif cmd == 'ls':
+        #    return "file1.txt\nfile2.txt\nfile3.txt"
         elif cmd == 'man':
             if len(cmdenv['args']) > 1:
                 keyword = cmdenv['args'][1]
@@ -588,50 +571,6 @@ class sh:
                 return self.get_desc('1').format(keyword)       # f"No manual entry for {keyword}"
             return self.get_desc('2')                           # "Usage: man [keyword]"
 
-        #return "<executed {}>".format(cmdenv['line'])
-
-        """
-        # Define command lists within the function to avoid global memory usage
-        sh0_commands = [
-            "dir", "ls", "cd", "mv", "rm", "cp", "pwd", "mkdir", "rmdir", "touch", "cat", 
-            "tail", "head", "wc", "less", "uname", "hostname", "alias", "run"
-        ]
-    
-        sh1_commands = [
-            "find", "sort", "df", "du", "vi", "nano", "edit", "grep", "more", "zcat", "hexedit",
-            "history", "uptime", "date", "whois", "env", "setenv", "export", "printenv", "diff",
-            "curl", "wget", "ping", "dig", "ssh", "scp", "telnet", "nc", "ifconfig", "ftp", "pip",
-            "yum", "apt", "tar", "gzip", "gunzip", "bzip2", "bunzip2", "python", "sh", "git",
-            "locate", "sz", "rz", "now", "who", "which", "clear", "reboot", "poweroff", "passwd",
-            "sleep", "unalias", "exit", "help", "md5sum", "sha1sum", "sha256sum", "hexedit",
-            "blink", "set", "pins", "adc", "button", "photo", "neo_blink", "blink_all_pins", "beep",
-            "freq", "display", "print", "showbmp", "clear", "mountsd", "umount", "espnowreceiver",
-            "espnowsender", "hardreset", "memtest", "bluescan", "scani2c", "temperature", "mag",
-            "gps", "radar", "telnetd", "wifi"
-        ]
-    
-        if cmd in sh0_commands:
-            lib_name = 'sh0'
-        elif cmd in sh1_commands:
-            lib_name = 'sh1'
-        else:
-            return self.get_desc('0').format(cmd) # {} command not found
-    
-        # Ensure the module is imported
-        if lib_name in sys.modules:
-            sh_module = sys.modules[lib_name]
-        else:
-            print(f"Module {lib_name} is not imported.")
-            return
-    
-        # Check if the command exists within the module
-        if hasattr(sh_module, cmd):
-            command_function = getattr(sh_module, cmd)
-            command_function(cmdenv)  # Run the command
-        else:
-            print(f"The command {cmd} is not available in the {lib_name} module.")
-        """
-
 
 	for mod in ["sh0", "sh1"]:
             gc.collect()
@@ -640,7 +579,7 @@ class sh:
             # sh_module = sys.modules['sh0']
             command_function = getattr(module, cmd,None)
             if command_function:
-                ret=command_function(cmdenv)  # Run the command
+                ret=command_function(self,cmdenv)  # Run the command
                 del sys.modules[mod]
                 gc.collect()
                 return ret
@@ -666,29 +605,9 @@ def main():
     # Use the custom context manager to redirect stdout and stdin
     with IORedirector(custom_io):
 
-        # test arg parsing
         shell = sh()
-        test_cases = [
-            r'ls --test=5 -abc "file name with spaces" $HOSTNAME $HOME | grep "pattern" > output.txt',
-            r'sort -n -k2,3 < input.txt',
-            r'echo `ls -a` | sort -r',
-            r'echo `ls` | sort -r',
-            r'ls $(echo out)',
-            r'echo $(sort $(echo "-r" `echo - -n`) -n)'
-        ]
 
-        for command_line in test_cases:
-            print(f"\n[32;1mTest case: {command_line}[0m")
-            cmds = shell.parse_command_line(command_line)
-            for i, cmdenv in enumerate(cmds):
-                print(f"Command {i + 1}:")
-                print("  Line:", cmdenv['line'])
-                print("  Switches:", cmdenv['sw'])
-                print("  Arguments:", cmdenv['args'])
-                print("  Redirections:", cmdenv['redirections'])
-                print("  Pipe from:", cmdenv['pipe_from'])
-            print()
-            gc.collect()
+        # see sh1.py/test() for argument parsing tests
 
         # test $VAR expansion
         #print(shell.subst_env("$GRN$HOSTNAME$NORM:{} cpy\$ ").format(os.getcwd()))
@@ -709,6 +628,5 @@ def main():
 
 # run it right now
 main()
-
 
 
