@@ -578,7 +578,7 @@ class sh:
             del sys.modules[mod]
             gc.collect()
 
-        return self.get_desc('0').format(cmd) # {} command not found
+        print(self.get_desc('0').format(cmd)) # {} command not found
     
 
 
