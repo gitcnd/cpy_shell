@@ -185,3 +185,7 @@ Supports settings.toml for configuration and environment where users can customi
 * ENVironment variables come from, and write into, `settings.toml`
 * use ^C to exit back to the python repl \>>>
 
+## Example
+
+![Project Screenshot](assets/screenshot.png)
+
