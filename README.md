@@ -26,37 +26,37 @@ Everything is written to save RAM and Flash; command bytecode is not loaded if y
 - `sort` - Sort lines of text files (supports -r flag)
 - `mkdir` - Make directories
 - `df` - Report file system disk space usage
-- `du` - Estimate file space usage
+- `du` - Estimate file space usage  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 - `rmdir` - Remove empty directories
 - `touch` - Change file timestamps or create an empty file
 
 ### Text Processing
-- `vi` - vim-like Text editor
-- `nano` - Text editor
-- `edit` - Text editor
-- `grep` - Search text using patterns
+- `vi` - vim-like Text editor  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `nano` - Text editor  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `edit` - Text editor  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `grep` - Search text using patterns  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 - `cat` - Concatenate and display files
-- `tail` - Output the last part of files
-- `head` - Output the first part of files
+- `tail` - Output the last part of files  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `head` - Output the first part of files  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 - `echo` - Display a line of text
-- `more` - View file contents page-by-page
-- `wc` - Word, line, character, and byte count
-- `zcat` - Concatenate compressed files and output
-- `less` - View file contents page-by-page with backward movement (similar to `more`)
-- `hexedit` - View and edit files in hexadecimal format
+- `more` - View file contents page-by-page  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `wc` - Word, line, character, and byte count  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `zcat` - Concatenate compressed files and output  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `less` - View file contents page-by-page with backward movement (similar to `more`)  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `hexedit` - View and edit files in hexadecimal format  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 
 ### System Information
 - `history` - Command history
-- `uname` - Print system information
-- `uptime` - Tell how long the system has been running
-- `hostname` - Show or set the system's hostname
-- `date` - Display or set the system date and time
-- `whois` - Query domain name information
+- `uname` - Print system information  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `uptime` - Tell how long the system has been running  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `hostname` - Show or set the system's hostname  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `date` - Display or set the system date and time  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
+- `whois` - Query domain name information  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 - `env` - Display or set environment variables
 - `setenv` - Set environment variables (equivalent of `export` in some contexts)
 - `export` - Set environment variables
 - `printenv` - Print all or part of the environment
-- `diff` - Compare files line by line
+- `diff` - Compare files line by line  [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present)
 
 ### Networking Utilities
 - `curl` - Transfer data from or to a server
@@ -149,6 +149,15 @@ Everything is written to save RAM and Flash; command bytecode is not loaded if y
 - `telnetd` - listen for terminal input over TCP/IP
 ####
 - `wifi` - control your wifi settings
+
+
+## Unimplimented at present
+
+\*\* items above marked [**](https://github.com/gitcnd/cpy_shell#user-content-Unimplimented-at-present) have not yet been written:-
+
+feel free to add them and send me a PR !
+
+new commands live in sh1.py or sh0.py etc as required (we want to keep the .mpy files for each of these libs to <= 4096 bytes to save ram and disk space.)
 
 
 ## Features
