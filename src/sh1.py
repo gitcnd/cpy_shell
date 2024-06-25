@@ -10,6 +10,7 @@ __version__ = '1.0.20240626'  # Major.Minor.Patch
 
 import gc
 import sys
+import os
 
 
 def sort(shell,cmdenv):
@@ -26,6 +27,20 @@ def man(shell,cmdenv):
             print(shell.get_desc('1').format(keyword))       # f"No manual entry for {keyword}"
     else:
         print(shell.get_desc('2'))                       # "Usage: man [keyword]"
+
+
+def _iter_cmds():
+    for mod in ["sh0", "sh1", "sh2"]:
+        gc.collect()
+        module = __import__(mod)
+        for name in dir(module):
+            if not name.startswith("_"):
+                obj = getattr(module, name)
+                if callable(obj):
+                    yield name
+        if mod != "sh1":
+            del sys.modules[mod]
+        gc.collect()
 
 
 def help(shell, cmdenv):
@@ -54,6 +69,46 @@ def help(shell, cmdenv):
                 print(f"  {cmd}")
     except Exception as e:
         _ee(shell, cmdenv, e)  # print(f"help: {e}")
+
+
+def which(shell, cmdenv):
+    if len(cmdenv['args']) < 2:
+        _ea(shell, cmdenv)
+        return
+
+    command = cmdenv['args'][1]
+
+    # Check for inbuilt commands
+    try:
+        for cmd in _iter_cmds():
+            if command == cmd:
+                print(f"{command}: (inbuilt)")
+                return
+    except Exception as e:
+        print(f"Error checking inbuilt commands: {e}")
+
+    # Check if the argument contains a "/" or "./" prefix and if it exists as a file
+    if "/" in command or command.startswith("./"):
+        try:
+            os.stat(command)
+            print(command)
+            return
+        except OSError:
+            pass
+
+    # Check /bin/ and /lib/ directories for .py or .mpy files
+    for directory in ["/bin", "/lib"]:
+        for ext in ["mpy", "py"]: # cpy runs the .mpy in preference
+            path = f"{directory}/{command}.{ext}"
+            try:
+                os.stat(path)
+                print(path)
+                return
+            except OSError:
+                pass
+
+    # If no match found
+    print(f"{command}: command not found")
 
 
 def test(shell,cmdenv):

@@ -72,7 +72,7 @@ def cd(shell, cmdenv):
 
 def mv(shell, cmdenv):
     if len(cmdenv['args']) < 3:
-         _ea(shell, cmdenv) # print("mv: missing file operand")
+        _ea(shell, cmdenv) # print("mv: missing file operand")
     else:
         try:
             os.rename(cmdenv['args'][1], cmdenv['args'][2])
@@ -82,7 +82,7 @@ def mv(shell, cmdenv):
 
 def rm(shell, cmdenv):
     if len(cmdenv['args']) < 2:
-         _ea(shell, cmdenv) # print("rm: missing file operand")
+        _ea(shell, cmdenv) # print("rm: missing file operand")
     else:
         path = cmdenv['args'][1]
         try:
@@ -96,7 +96,7 @@ def rm(shell, cmdenv):
 
 def cp(shell, cmdenv):
     if len(cmdenv['args']) < 3:
-         _ea(shell, cmdenv) # print("cp: missing file operand")
+        _ea(shell, cmdenv) # print("cp: missing file operand")
     else:
         try:
             with open(cmdenv['args'][1], 'rb') as src_file:
@@ -116,7 +116,7 @@ def echo(shell, cmdenv):
 
 def mkdir(shell, cmdenv):
     if len(cmdenv['args']) < 2:
-         _ea(shell, cmdenv) # print("mkdir: missing file operand")
+        _ea(shell, cmdenv) # print("mkdir: missing file operand")
     else:
         try:
             os.mkdir(cmdenv['args'][1])
@@ -126,7 +126,7 @@ def mkdir(shell, cmdenv):
 
 def rmdir(shell, cmdenv):
     if len(cmdenv['args']) < 2:
-         _ea(shell, cmdenv) # print("rmdir: missing file operand")
+        _ea(shell, cmdenv) # print("rmdir: missing file operand")
     else:
         try:
             os.rmdir(cmdenv['args'][1])
