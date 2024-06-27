@@ -1,6 +1,6 @@
 # sh.py
 
-__version__ = '1.0.20240627'  # Major.Minor.Patch
+__version__ = '1.0.20240628'  # Major.Minor.Patch
 
 # Created by Chris Drake.
 # Linux-like shell interface for CircuitPython.  https://github.com/gitcnd/cpy_shell
@@ -77,7 +77,9 @@ class CustomIO:
 
     def ins_command(self,command,mv=True):
         # Replace this with the actual command execution logic
-        print(f'\033[{self._cursor_pos}D{command}\033[K', end='')  # Move cursor left by current cursor_pos, output the new line, and clear anything after it
+        if self._cursor_pos>0:
+            print(f'\033[{self._cursor_pos}D', end='')  # Move cursor left by current cursor_pos
+        print(f'{command}\033[K', end='')  # output the new line, and clear anything after it
         if mv:
             self._cursor_pos=len(command)
         else:
