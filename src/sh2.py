@@ -84,7 +84,7 @@ def ping(shell, cmdenv):
 
 def history(shell, cmdenv):
     try:
-        with open("/history.txt", "r") as file:
+        with open("/.history.txt", "r") as file:
             for index, line in enumerate(file, start=1):
                 parts = line.strip().split("\t")
                 if len(parts) < 2:

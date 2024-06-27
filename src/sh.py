@@ -1,6 +1,6 @@
 # sh.py
 
-__version__ = '1.0.20240626'  # Major.Minor.Patch
+__version__ = '1.0.20240627'  # Major.Minor.Patch
 
 # Created by Chris Drake.
 # Linux-like shell interface for CircuitPython.  https://github.com/gitcnd/cpy_shell
@@ -30,12 +30,6 @@ import socketpool
 import wifi
 import time
 
-    
-
-def read_nonblocking():
-    if supervisor.runtime.serial_bytes_available:
-        return sys.stdin.read(1)
-    return None
 
 
 class CustomIO:
@@ -46,7 +40,23 @@ class CustomIO:
         self.outfiles = []  # List of open file objects for output
         self.infiles = []   # List of open file objects for input
         self.socket_buffers = {}  # Dictionary to store buffers for each socket
-        self.history_file = "/history.txt"  # Path to the history file
+        self.history_file = "/.history.txt"  # Path to the history file
+
+        self._nbuf = ""
+        self._line = ""
+        self._cursor_pos = 0
+        self._lastread = time.monotonic()
+        self._esc_seq = ""
+        self._reading_esc = False
+        self._insert_mode = True  # Default to insert mode
+        self._hist_loc = -1  # Start with the most recent command (has 1 added before use; 0 means last)
+
+        # New global variables for terminal size and type
+        self._TERM_WIDTH = 80
+        self._TERM_HEIGHT = 24
+        self._TERM_TYPE = ""
+        self._TERM_TYPE_EX = ""
+
         if time.time() < 1718841600 and wifi.radio.ipv4_address: self.set_time() # set the time if possible and not already set
 
 
@@ -54,21 +64,249 @@ class CustomIO:
     def initialize_buffers(self):
         self.socket_buffers = {sock: "" for sock in self.sockets}
 
+    def _read_nonblocking(self):
+        if supervisor.runtime.serial_bytes_available:
+            self._nbuf += sys.stdin.read(supervisor.runtime.serial_bytes_available)
+            i=self._nbuf.find('\n')+1
+            if i<1: i=None
+            ret=self._nbuf[:i]
+            self._nbuf=self._nbuf[len(ret):]
+            return ret
+        return None
+
+
+    def ins_command(self,command,mv=True):
+        # Replace this with the actual command execution logic
+        print(f'\033[{self._cursor_pos}D{command}\033[K', end='')  # Move cursor left by current cursor_pos, output the new line, and clear anything after it
+        if mv:
+            self._cursor_pos=len(command)
+        else:
+            m=len(command)-self._cursor_pos
+            if m>0:
+                print(f'\033[{m}D', end='')  # Move cursor back to same place it was
+        self._line=command
+
+    def get_history_line(self,n):
+        with open(self.history_file, "r") as f:
+            for i, line in enumerate(f):
+                if i == n - 1:
+                    return line.split('\t', 1)[1].strip()
+        return None
+    
+
+    def search_history(self, pfx, hist_loc):
+        with open(self.history_file, "rb") as f:
+            f.seek(0, 2)  # Seek to the end of the file
+            file_size = f.tell()
+            remaining = file_size
+            buffer_size = 64
+            partial_line = b""
+            #matches = []
+            match=-1
+            prevm=''
+            match_idx = file_size - hist_loc * buffer_size
+
+            while remaining > 0 or partial_line:
+                read_size = min(buffer_size, remaining)
+                f.seek(remaining - read_size)
+                buffer = f.read(read_size)
+                remaining -= read_size
+
+                lines = buffer.split(b'\n')
+                if partial_line:
+                    lines[-1] += partial_line
+                partial_line = lines[0] if remaining > 0 else b""
+
+                for line in reversed(lines[1:] if remaining > 0 else lines):
+                    try:
+                        if line.strip():
+                            decoded_line = line.decode('utf-8').split('\t', 1)[1].strip()
+                            #print(f"considering line: {decoded_line}")
+                            if decoded_line.startswith(pfx):
+                                if decoded_line != prevm: # ignore duplicates
+                                    match += 1
+                                prevm=decoded_line
+                                #matches.append(decoded_line)
+                                #print(f"yes match={match} want={hist_loc} pfx='{pfx}'")
+                                if match==hist_loc:
+                                    return decoded_line
+                            #else:
+                            #   #print(f"no match={match} want={hist_loc} pfx='{pfx}'")
+                    except IndexError as e:
+                        print(f"possible history_file error: {e} for line: {line}")
+
+                #if len(matches) > hist_loc:
+                #    return matches[hist_loc]
+
+        return None
+
+
+    def _process_input(self, char):
+        self._lastread = time.monotonic()
+        
+        if self._reading_esc:
+            self._esc_seq += char
+            if time.monotonic() - self._lastread > 0.1:
+                self._reading_esc = False
+                self._esc_seq = ""
+                return self._line, "esc", self._cursor_pos
+            if self._esc_seq[-1] in 'ABCDEFGH~Rnc': 
+                response = self._handle_esc_sequence(self._esc_seq[2:])
+                self._reading_esc = False
+                self._esc_seq = ""
+                if response:
+                    return response
+        elif char == '\x1b':  # ESC sequence
+            self._reading_esc = True
+            self._esc_seq = char
+        elif char in ['\x7f', '\b']:  # Backspace
+            if self._cursor_pos > 0:
+                self._line = self._line[:self._cursor_pos - 1] + self._line[self._cursor_pos:]
+                self._cursor_pos -= 1
+                print('\b \b' + self._line[self._cursor_pos:] + ' ' + '\b' * (len(self._line) - self._cursor_pos + 1), end='')
+        elif char in ['\r', '\n']:  # Enter
+            ret_line = self._line
+            err='sh: !{}: event not found'
+            if ret_line.startswith("!"): # put history into buffer
+                if ret_line[1:].isdigit():
+                    nth = int(ret_line[1:])
+                    history_line = self.get_history_line(nth)
+                    if history_line:
+                        self.ins_command(history_line)
+                    else:
+                        print(err.format(nth)) # sh: !123: event not found
+                        return '' # re-show the prompt
+                else:
+                    pfx = ret_line[1:]
+                    history_line = self.search_history(pfx,0)
+                    if history_line:
+                        self.ins_command(history_line)
+                    else:
+                        print(err.format(pfx)) # sh: !{pfx}: event not found
+                        return '' # re-show the prompt
+            else:
+                print('\r')
+                self._line = ""
+                self._cursor_pos = 0
+                self._hist_loc = -1
+                return ret_line, 'enter', self._cursor_pos
+        elif char == '\t':  # Tab
+            return self._line, 'tab', self._cursor_pos
+        else:
+            if self._insert_mode:
+                self._line = self._line[:self._cursor_pos] + char + self._line[self._cursor_pos:]
+                print(f'\033[@{char}', end='')  # Print char and insert space at cursor position
+            else:
+                self._line = self._line[:self._cursor_pos] + char + self._line[self._cursor_pos + 1:]
+                print(char, end='')
+            self._cursor_pos += 1
+        
+        return None
+
+    def _handle_esc_sequence(self, seq):
+
+        if seq in ['A', 'B']:  # Up or Down arrow
+            i = 1 if seq == 'A' else -1
+            
+            if seq == 'B' and self._hist_loc < 1:
+                return
+        
+            self._hist_loc += i
+
+            history_line = self.search_history(self._line[:self._cursor_pos], self._hist_loc)
+
+            #print(f"arrow {seq} line {self._hist_loc} h={history_line}")
+            
+            if history_line:
+                self.ins_command(history_line,mv=False)
+            else:
+                self._hist_loc -= i
+
+            #return self._line, 'up' if seq == 'A' else 'down', self._cursor_pos
+        elif seq == 'C':  # Right arrow
+            if self._cursor_pos < len(self._line):
+                self._cursor_pos += 1
+                print('\033[C', end='')
+        elif seq == 'D':  # Left arrow
+            if self._cursor_pos > 0:
+                self._cursor_pos -= 1
+                print('\033[D', end='')
+        elif seq == '3~':  # Delete
+            if self._cursor_pos < len(self._line):
+                self._line = self._line[:self._cursor_pos] + self._line[self._cursor_pos + 1:]
+                print('\033[1P', end='')  # Delete character at cursor position
+        elif seq == '2~':  # Insert
+            self._insert_mode = not self._insert_mode
+        elif seq in ['H', '1~']:  # Home
+            print(f'\033[{self._cursor_pos}D', end='')  # Move cursor left by current cursor_pos
+            self._cursor_pos = 0
+        elif seq in ['F', '4~']:  # End
+            print(f'\033[{len(self._line) - self._cursor_pos}C', end='')  # Move cursor right by difference
+            self._cursor_pos = len(self._line)
+        elif seq == '1;5D':  # Ctrl-Left
+            if self._cursor_pos > 0:
+                prev_pos = self._cursor_pos
+                while self._cursor_pos > 0 and self._line[self._cursor_pos - 1].isspace():
+                    self._cursor_pos -= 1
+                while self._cursor_pos > 0 and not self._line[self._cursor_pos - 1].isspace():
+                    self._cursor_pos -= 1
+                print(f'\033[{prev_pos - self._cursor_pos}D', end='')
+        elif seq == '1;5C':  # Ctrl-Right
+            if self._cursor_pos < len(self._line):
+                prev_pos = self._cursor_pos
+                while self._cursor_pos < len(self._line) and not self._line[self._cursor_pos].isspace():
+                    self._cursor_pos += 1
+                while self._cursor_pos < len(self._line) and self._line[self._cursor_pos].isspace():
+                    self._cursor_pos += 1
+                print(f'\033[{self._cursor_pos - prev_pos}C', end='')
+        elif seq.endswith('R'):  # Cursor position report
+            self._TERM_HEIGHT, self._TERM_WIDTH = map(int, seq[:-1].split(';'))
+            return self._line, 'sz', self._cursor_pos
+        elif seq.startswith('>') and seq.endswith('c'):  # Extended device Attributes
+            self._TERM_TYPE_EX = seq[1:-1]
+            return seq, 'attr', self._cursor_pos
+        elif seq.startswith('?') and seq.endswith('c'):  # Device Attributes
+            self._TERM_TYPE = seq[1:-1]
+            return seq, 'attr', self._cursor_pos
+        return None
+
+
+
     # Read input from stdin, sockets, or files
     def read_input(self):
 
         # Read from stdin
-        char=1 # keep doing this 'till we get nothing more
-        while char:
-            char = read_nonblocking()
-            if char:
-                self.send_chars_to_all(char) # echo it
-                if char == '\n':
-                    line = self.input_content
-                    self.input_content = ""
-                    self.add_hist(line)
-                    return line
-                self.input_content += char # don't append \n to the commandline
+        chars=1 # keep doing this 'till we get nothing more
+        while chars:
+            #print("r1")
+            chars = self._read_nonblocking()
+            #print("r2")
+            if chars:
+
+                for char in chars:
+                    response = self._process_input(char)
+                    if response:
+                        user_input, key, cursor = response
+                        if key=='enter':
+                            if len(user_input):
+                                self.add_hist(user_input)
+                            return user_input
+                        elif key != 'sz': 
+                            oops=f" (mode {key} not implimented)";
+                            print(oops +  '\b' * (len(oops)), end='')
+
+                # #print("wt")
+                # self.send_chars_to_all(chars) # echo it
+                # #print("wd")
+                # if chars.endswith('\n'):
+                #     chars = self.input_content + chars.rstrip('\n') # don't append \n to the commandline
+                #     self.input_content = ""
+                #     self.add_hist(chars)
+                #     return chars
+                # self.input_content += chars 
+                # self._lastread=time.monotonic()
+            elif time.monotonic()-self._lastread>0.1:
+                time.sleep(0.1)  # Small delay to prevent high CPU usage
 
         # Read from input files
         for file in self.infiles:
@@ -246,7 +484,6 @@ class IORedirector:
             line = self.custom_io.read_input()
             if line is not None:
                 return line.rstrip('\n')
-            time.sleep(0.1)  # Small delay to prevent high CPU usage
 
     def custom_print(self, *args, **kwargs):
         sep = kwargs.get('sep', ' ')
@@ -273,6 +510,14 @@ class sh:
                     return 'corrupt help file'
 
         return None
+
+
+    def file_exists(self, filepath):
+        try:
+            os.stat(filepath)
+            return True
+        except OSError:
+            return False
 
 
     # """Replace environment variables in the argument."""
@@ -615,10 +860,14 @@ def main():
 
         # test input
         run=1
+        print("\033[s\0337\033[999C\033[999B\033[6n\r\033[u\0338", end='')  # Request terminal size.
         while run>0:
             run=1
             user_input = input(shell.subst_env("$GRN$HOSTNAME$NORM:{} cpy\$ ").format(os.getcwd())) # the stuff in the middle is the prompt
             if user_input:
+                #print("#############")
+                #print(''.join(f' 0x{ord(c):02X} ' if ord(c) < 0x20 else c for c in user_input))
+                #print("#############")
                 #hex_values = ' '.join(f'{ord(c):02x}' for c in user_input)
                 #print("input=0x " + hex_values)
                 # print(f"Captured input: {user_input}")

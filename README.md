@@ -1,9 +1,9 @@
 # cpy_shell
 Linux-like shell interface for CircuitPython
 
-Inspired by [mipyshell](https://github.com/vsolina/mipyshell) and busybox, here is a command-line shell for your CircuitPython board carefully implementing a range of useful commands.
+Inspired by [mipyshell](https://github.com/vsolina/mipyshell) and busybox, here is a command-line shell for your CircuitPython board carefully implementing a range of useful commands and features.
 
-Everything is written to save RAM and Flash; command bytecode is not loaded if you don't run the command, history is stored in a file, not in RAM, pipes use flash instead of RAM, etc.
+Everything is written to save RAM and Flash; command bytecode is not loaded if you don't run the command, history is stored in a file, not in RAM, pipes use flash instead of RAM, command recall and editing and tab-completion is intelligent, etc.
 
 ## Installation and running:
 
@@ -17,10 +17,10 @@ Everything is written to save RAM and Flash; command bytecode is not loaded if y
 ### File Management
 - `dir` - List directory contents (alias for `ls -Flatr`)
 - `cd` - Change directory
-- `mv` - Move or rename files or directories
+- `mv` - Move or rename files or directories (supports -i)
 - `ls` - List directory contents (supports -F -l -a -t -r -h -S flags)
 - `rm` - Remove files or directories
-- `cp` - Copy files or directories
+- `cp` - Copy files or directories (supports -i)
 - `pwd` - Print working directory
 - `find` - Search for files in a directory hierarchy
 - `sort` - Sort lines of text files (supports -r flag)
