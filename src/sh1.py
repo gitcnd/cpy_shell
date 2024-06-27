@@ -13,9 +13,6 @@ import sys
 import os
 
 
-def sort(shell,cmdenv):
-    return "\n".join(sorted(cmdenv['args'][1:], reverse='-r' in cmdenv['sw']))
-
 
 def man(shell,cmdenv):
     if len(cmdenv['args']) > 1:

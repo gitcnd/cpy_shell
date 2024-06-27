@@ -11,7 +11,7 @@ __version__ = '1.0.20240626'  # Major.Minor.Patch
 import gc
 import time
 import wifi
-import ipaddress
+#import ipaddress
 import socketpool
 
 
@@ -28,58 +28,27 @@ def free(shell, cmdenv):
         _ee(shell, cmdenv, e)  # print(f"free: {e}")
 
 
-def ping(shell, cmdenv):
+def wc(shell, cmdenv):
     if len(cmdenv['args']) < 2:
-        print("usage: ping <address>")
-        return
+        _ea(shell, cmdenv)  # print("wc: missing file operand")
+    else:
+        path = cmdenv['args'][1]
+        try:
+            with open(path, 'rb') as file:
+                lines = 0
+                words = 0
+                bytes_count = 0
+                while True:
+                    chunk = file.read(512)
+                    if not chunk:
+                        break
+                    lines += chunk.count(b'\n')
+                    words += len(chunk.split())
+                    bytes_count += len(chunk)
+                print(f"{lines} {words} {bytes_count} {path}")
+        except Exception as e:
+            _ee(shell, cmdenv, e)  # print(f"wc: {e}")
 
-    dom = cmdenv['args'][1]
-
-    pool = socketpool.SocketPool(wifi.radio)
-
-    try:
-        addr_info = pool.getaddrinfo(dom, 80)  # Using port 80 for HTTP
-        ip = addr_info[0][4][0]
-        ip1 = ipaddress.ip_address(ip)
-    except Exception as e:
-        print(f'Error getting IP address: {e}')
-        return
-
-    print(f"PING {dom} ({ip}) 56(84) bytes of data.")
-    
-    packet_count = 4
-    transmitted = 0
-    received = 0
-    total_time = 0
-    times = []
-
-    for seq in range(1, packet_count + 1):
-        transmitted += 1
-        start_time = time.monotonic()
-        
-        result = wifi.radio.ping(ip1)
-        rtt = (time.monotonic() - start_time) * 1000  # Convert to milliseconds
-        total_time += rtt
-        
-        if result is not None:
-            received += 1
-            times.append(rtt)
-            print(f"64 bytes from {ip}: icmp_seq={seq} time={rtt:.1f} ms")
-        else:
-            print(f"Request timeout for icmp_seq {seq}")
-        
-        if rtt<1000 and seq<packet_count:
-            time.sleep((1000-rtt)/1000)
-
-    print(f"--- {ip} ping statistics ---")
-    print(f"{transmitted} packets transmitted, {received} received, {((transmitted - received) / transmitted) * 100:.0f}% packet loss, time {total_time:.0f}ms")
-
-    if times:
-        min_time = min(times)
-        avg_time = sum(times) / len(times)
-        max_time = max(times)
-        mdev_time = (sum((x - avg_time) ** 2 for x in times) / len(times)) ** 0.5
-        print(f"rtt min/avg/max/mdev = {min_time:.3f}/{avg_time:.3f}/{max_time:.3f}/{mdev_time:.3f} ms")
 
 
 def history(shell, cmdenv):
@@ -99,12 +68,6 @@ def history(shell, cmdenv):
 def date(shell, cmdenv):
     date_time = time.localtime()
     print(f"{date_time.tm_year}-{date_time.tm_mon:02}-{date_time.tm_mday:02} {date_time.tm_hour:02}:{date_time.tm_min:02}.{date_time.tm_sec:02}")
-
-
-def reboot(shell, cmdenv):
-    import microcontroller
-    print("Rebooting...")
-    microcontroller.reset()
 
 
 def sleep(shell, cmdenv): # not working

@@ -190,8 +190,37 @@ class CustomIO:
                 self._cursor_pos = 0
                 self._hist_loc = -1
                 return ret_line, 'enter', self._cursor_pos
+
+        elif char == '\001':  # repl exit
+            return 'exit', 'enter', 0
         elif char == '\t':  # Tab
-            return self._line, 'tab', self._cursor_pos
+            #return self._line, 'tab', self._cursor_pos
+            current_input = self._line[:self._cursor_pos]
+            if any(char in current_input for char in [' ', '<', '>', '|']):
+                # Extract the word immediately at the cursor
+                last_space = current_input.rfind(' ') + 1
+                #if last_space == -1:
+                #    last_space = 0
+                #else:
+                #    last_space += 1
+                word = current_input[last_space:self._cursor_pos]
+        
+                try:
+                    for entry in os.listdir():
+                        if entry.startswith(word):
+                            self.ins_command(self._line[:self._cursor_pos] + entry[len(word):] + self._line[self._cursor_pos:])
+                            break
+                except OSError as e:
+                    print(f"Error listing directory: {e}")
+
+            else:
+                from sh1 import _iter_cmds
+                for cmd in _iter_cmds():
+                    if cmd.startswith(current_input):
+                         self.ins_command(self._line[:self._cursor_pos] + cmd[len(current_input):] + ' ' + self._line[self._cursor_pos:])
+                         break
+                del sys.modules["sh1"]
+
         else:
             if self._insert_mode:
                 self._line = self._line[:self._cursor_pos] + char + self._line[self._cursor_pos:]
