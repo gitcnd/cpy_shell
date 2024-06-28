@@ -241,8 +241,10 @@ def df(shell, cmdenv):
 def ping(shell, cmdenv):
     import ipaddress
     import socketpool
+    import wifi
     if len(cmdenv['args']) < 2:
-        print("usage: ping <address>")
+        #print("usage: ping <address>")
+        print(shell.get_desc('14')) # usage: ping <address>
         return
 
     dom = cmdenv['args'][1]
@@ -254,10 +256,12 @@ def ping(shell, cmdenv):
         ip = addr_info[0][4][0]
         ip1 = ipaddress.ip_address(ip)
     except Exception as e:
-        print(f'Error getting IP address: {e}')
+        #print(f'Error getting IP address: {e}') # saves 21 bytes
+        print(shell.get_desc('15').format(e)) # Error getting IP address: {e}
         return
 
-    print(f"PING {dom} ({ip}) 56(84) bytes of data.")
+    #print(f"PING {dom} ({ip}) 56(84) bytes of data.")
+    print(shell.get_desc('16').format(dom,ip)) # PING {dom} ({ip}) 56(84) bytes of data.
     
     packet_count = 4
     transmitted = 0
@@ -278,20 +282,22 @@ def ping(shell, cmdenv):
             times.append(rtt)
             print(f"64 bytes from {ip}: icmp_seq={seq} time={rtt:.1f} ms")
         else:
-            print(f"Request timeout for icmp_seq {seq}")
+            #print(f"Request timeout for icmp_seq {seq}")
+            print(shell.get_desc('17').format(seq)) # Request timeout for icmp_seq {seq}
         
         if rtt<1000 and seq<packet_count:
             time.sleep((1000-rtt)/1000)
 
-    print(f"--- {ip} ping statistics ---")
-    print(f"{transmitted} packets transmitted, {received} received, {((transmitted - received) / transmitted) * 100:.0f}% packet loss, time {total_time:.0f}ms")
+    #print(f"--- {ip} ping statistics ---\n{transmitted} packets transmitted, {received} received, {((transmitted - received) / transmitted) * 100:.0f}% packet loss, time {total_time:.0f}ms")
+    print(shell.get_desc('18').format(ip,transmitted,received,((transmitted - received) / transmitted) * 100,total_time)) # --- {ip} ping statistics ---\n{transmitted} packets transmitted, {received} received, {((transmitted - received) / transmitted) * 100:.0f}% packet loss, time {total_time:.0f}ms
 
     if times:
         min_time = min(times)
         avg_time = sum(times) / len(times)
         max_time = max(times)
         mdev_time = (sum((x - avg_time) ** 2 for x in times) / len(times)) ** 0.5
-        print(f"rtt min/avg/max/mdev = {min_time:.3f}/{avg_time:.3f}/{max_time:.3f}/{mdev_time:.3f} ms")
+        #print(f"rtt min/avg/max/mdev = {min_time:.3f}/{avg_time:.3f}/{max_time:.3f}/{mdev_time:.3f} ms")
+        print(shell.get_desc('19').format(min_time,avg_time,max_time,mdev_time)) # rtt min/avg/max/mdev = {min_time:.3f}/{avg_time:.3f}/{max_time:.3f}/{mdev_time:.3f} ms
 
 
 def clear(shell, cmdenv):

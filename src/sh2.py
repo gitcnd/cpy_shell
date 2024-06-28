@@ -65,6 +65,76 @@ def history(shell, cmdenv):
         print(f"Error reading history: {e}")
 
 
+def _show_mdns():
+    import wifi
+    import mdns
+
+    # Create an mDNS server instance
+    mdns_server = mdns.Server(wifi.radio)
+    
+    # Retrieve the hostname
+    mdns_name = mdns_server.hostname
+
+    # Print the mDNS hostname
+    print(f"mDNS Hostname: {mdns_name}")
+
+    # Find services advertised by this hostname
+    # services = mdns_server.find(service_type="_services._dns-sd._udp", protocol="_udp", timeout=1.0)
+    services = mdns_server.find(service_type="_http", protocol="_tcp", timeout=1.0)
+    #services = mdns_server.find(service_type="", protocol="", timeout=1.0) # rats. nothing.
+
+
+    # Print the found services
+    if services:
+        for service in services:
+            if service.hostname == mdns_name:
+                print(f"### US ###")
+            print(f"Service: {service.instance_name}")
+            print(f"  Hostname: {service.hostname}")
+            print(f"  Address: {service.ipv4_address}")
+            print(f"  Port: {service.port}")
+            print(f"  Type: {service.service_type}")
+            print(f"  Protocol: {service.protocol}")
+    else:
+        print("No mDNS services found")
+
+
+def ifconfig(shell, cmdenv):
+    import wifi
+    import mdns
+
+    # Get network interface details
+    ip4_address = wifi.radio.ipv4_address
+    netmask = wifi.radio.ipv4_subnet
+    gateway = wifi.radio.ipv4_gateway
+    mac_address = wifi.radio.mac_address
+    hostname = wifi.radio.hostname
+    dns = wifi.radio.ipv4_dns
+    tx_power = wifi.radio.tx_power
+    mdns_server = mdns.Server(wifi.radio)
+    mdnshostname=mdns_server.hostname
+
+    # Format MAC address
+    mac_address_str = ':'.join(['{:02x}'.format(b) for b in mac_address])
+
+    # Print network interface details
+    print(f"wifi0: inet {ip4_address}  netmask {netmask}  gateway {gateway}")
+    print(f"\tether {mac_address_str}  (Ethernet)")
+    print(f"\tHostname: radio:{hostname} mDNS:{mdnshostname}")
+    #if dns:
+    print(f"\tDNS: {dns}")
+    print(f"\tTX power: {tx_power} dBm")
+    print(f"\tSSID: {wifi.radio.ap_info.ssid}")
+    print("\tBSSID: {}".format(':'.join([f'{b:02x}' for b in wifi.radio.ap_info.bssid])))
+    #print(':'.join([f'{b:02x}' for b in wifi.radio.ap_info.bssid]))
+    print(f"\tChannel: {wifi.radio.ap_info.channel}")
+    print(f"\tCountry: {wifi.radio.ap_info.country}")
+    print(f"\tRSSI: {wifi.radio.ap_info.rssi}")
+    _show_mdns()
+    #del sys.modules["mdns"] # done. save space now.
+
+
+
 def date(shell, cmdenv):
     date_time = time.localtime()
     print(f"{date_time.tm_year}-{date_time.tm_mon:02}-{date_time.tm_mday:02} {date_time.tm_hour:02}:{date_time.tm_min:02}.{date_time.tm_sec:02}")

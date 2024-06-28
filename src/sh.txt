@@ -13,6 +13,12 @@ version	1.0.20240626
 11	{}: target '{}' is not a directory
 12	{}: cannot access '{}': No such file or directory
 13	sh: !{}: event not found
+14	usage: ping <address>
+15	Error getting IP address: {}
+16	PING {} ({}) 56(84) bytes of data.
+17	Request timeout for icmp_seq {}
+18	--- {} ping statistics ---\n{} packets transmitted, {} received, {:.0f}% packet loss, time {:.0f}ms
+19	rtt min/avg/max/mdev = {:.3f}/{:.3f}/{:.3f}/{:.3f} ms
 dir	List directory contents (alias for ls -Flatr)
 ls	List directory contents\n$GRN -l $NORM List in long format\n$GRN -a $NORM Include hidden files\n$GRN -h $NORM Human-readable sizes\n$GRN -F $NORM append file classification indicator\n$GRN -t $NORM sort by time\n$GRN -S $NORM sort by size\n$GRN -r $NORM reverse order sort
 cd	Change directory\n$GRN cd <directory> $NORM Change to the specified directory
@@ -57,6 +63,7 @@ diff	Compare files line by line\n$GRN -u $NORM Output in unified format\n$GRN -q
 curl	Transfer data from or to a server\n$GRN -i $NORM show headers\n$GRN -I $NORM do a HEAD request\n$GRN --data=myvar=value $NORM send POST data\n$GRN -O $NORM Write output to a file named as the remote file\n$GRN --output=file $NORM Write output to a specified file
 wget	Non-interactive network downloader - see$YEL curl$NORM command
 ping	Send ICMP ECHO_REQUEST to network hosts\n$GRN -c $NORM Stop after sending count ECHO_REQUEST packets
+ifconfig	Print networking information (IP address, Gateway, BSSID, Signal Strength, TX Power, etc)
 dig	DNS lookup
 ssh	OpenSSH remote login client
 scp	Secure copy (remote file copy program)
