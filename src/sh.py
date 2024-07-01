@@ -269,10 +269,13 @@ class CustomIO:
         elif seq == '2~':  # Insert
             self._insert_mode = not self._insert_mode
         elif seq in ['H', '1~']:  # Home
-            print(f'\033[{self._cursor_pos}D', end='')  # Move cursor left by current cursor_pos
+            if self._cursor_pos > 0:
+                print(f'\033[{self._cursor_pos}D', end='')  # Move cursor left by current cursor_pos
             self._cursor_pos = 0
         elif seq in ['F', '4~']:  # End
-            print(f'\033[{len(self._line) - self._cursor_pos}C', end='')  # Move cursor right by difference
+            d=len(self._line) - self._cursor_pos
+            if d>0:
+                print(f'\033[{d}C', end='')  # Move cursor right by difference
             self._cursor_pos = len(self._line)
         elif seq == '1;5D':  # Ctrl-Left
             if self._cursor_pos > 0:
@@ -291,7 +294,10 @@ class CustomIO:
                     self._cursor_pos += 1
                 print(f'\033[{self._cursor_pos - prev_pos}C', end='')
         elif seq.endswith('R'):  # Cursor position report
-            self._TERM_HEIGHT, self._TERM_WIDTH = map(int, seq[:-1].split(';'))
+            try:
+                self._TERM_HEIGHT, self._TERM_WIDTH = map(int, seq[:-1].split(';'))
+            except Exception as e:
+                print(f"term-size set command {seq[:-1]} error: {e}")
             return self._line, 'sz', self._cursor_pos
         elif seq.startswith('>') and seq.endswith('c'):  # Extended device Attributes
             self._TERM_TYPE_EX = seq[1:-1]
@@ -827,14 +833,23 @@ class sh:
     
     def execute_command(self,command):
         # """Execute a command and return its output. Placeholder for actual execution logic."""
-        parts = self.parse_command_line(command)
-        cmdenv = parts[0]  # Assuming simple commands for mock execution
-        cmd=cmdenv['args'][0]
-        #print("executing: {}".format(cmdenv['line'])) #DBG
+        for _ in range(2): # optional alias expander
+            parts = self.parse_command_line(command)
+            cmdenv = parts[0]  # Assuming simple commands for mock execution
+            cmd=cmdenv['args'][0]
+            #print("executing: {}".format(cmdenv['line'])) #DBG
+
+            alias = os.getenv(cmd)
+            if alias is not None:
+                command=alias + command[command.find(' '):] or ' '
+            else:
+                break
 
         # internal commands
         if cmd == 'exit':
             return 0
+
+
         #if cmd == 'echo':
         #    print( cmdenv['line'].split(' ', 1)[1] if ' ' in cmdenv['line'] else '') # " ".join(cmdenv['args'][1:])
         #elif cmd == 'sort':

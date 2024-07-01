@@ -88,9 +88,12 @@ def cd(shell, cmdenv):
 
 
 def _cp(src, tgt):
-    with open(src, 'rb') as src_file:
-        with open(tgt, 'wb') as dest_file:
-            dest_file.write(src_file.read())
+    try:
+        with open(src, 'rb') as src_file:
+                with open(tgt, 'wb') as dest_file:	# OSError: [Errno 30] Read-only filesystem
+                    dest_file.write(src_file.read())
+    except OSError as e:
+        _ee(shell, cmdenv, e)  # print(f"mv: {e}")
 
 
 def _confirm_overwrite(shell, filename):
@@ -98,6 +101,7 @@ def _confirm_overwrite(shell, filename):
     return response.lower() == 'y'
 
 def mv(shell, cmdenv):
+    #print("cmdenv", cmdenv)
     cmd = cmdenv['args'][0]
     interactive = cmdenv['sw'].get('i', False)
     if len(cmdenv['args']) < 3:
@@ -130,7 +134,7 @@ def mv(shell, cmdenv):
                     if cmd == 'cp':
                         _cp(path, target)
                     else:  # mv
-                        if fstat[0] == 0xFCD:
+                        if not fstat[0] == 0xFCD:
                             os.remove(target)
                         os.rename(path, target)
                 except OSError as e:

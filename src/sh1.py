@@ -119,6 +119,7 @@ def test(shell,cmdenv):
         r'ls $(echo out)',
         r'echo $(sort $(echo "-r" `echo - -n`) -n)'
     ]
+    test_cases = [ r'alias dir="ls -Flatr"' ,  r'alias dir="echo $RED hime $NORM"', r"alias dir='echo $RED hime $NORM'", ]
 
     for command_line in test_cases:
         print(f"\n\033[32;1mTest case: {command_line}\033[0m")
@@ -135,3 +136,238 @@ def test(shell,cmdenv):
 
     return "ok\n"
 
+
+def run(shell,cmdenv):
+    if len(cmdenv['args']) < 2:
+        _ea(shell, cmdenv)
+        return
+
+    file_path = cmdenv['args'][1]
+
+    in_docstring = False
+    block = ""
+    extra_iteration = False
+
+    with open(file_path, 'r') as f:
+        while True:
+            if not extra_iteration:
+                line = f.readline()
+                if not line:
+                    extra_iteration = True
+                    line = '\n'  # Trigger the final block execution
+            else:
+                break
+
+            stripped_line = line.strip()
+
+            if in_docstring:
+                if stripped_line.endswith('"""') or stripped_line.endswith("'''"):
+                    in_docstring = False
+                continue
+
+            if stripped_line.startswith('"""') or stripped_line.startswith("'''"):
+                in_docstring = True
+                continue
+
+            if '#' in line:
+                line = line.split('#', 1)[0]
+
+            if line.strip():
+                block += line + '\n'
+                try:
+                    exec(block)
+                    block = ""
+                except SyntaxError:
+                    # If compile fails, continue adding lines to the block
+                    continue
+                #except Exception as e:
+                #    print(f"Error executing block: {e}")
+                #    break
+
+
+def run2(shell, cmdenv):
+    if len(cmdenv['args']) < 2:
+        _ea(shell, cmdenv)
+        return
+
+    file_path = cmdenv['args'][1]
+
+    in_docstring = False
+    block = ""
+    extra_iteration = False
+    open_brackets = 0
+    open_parentheses = 0
+    open_braces = 0
+    in_quote = False
+    quote_char = ''
+
+    def is_in_string(line, in_quote, quote_char):
+        escape = False
+        for char in line:
+            if char == '\\' and not escape:
+                escape = True
+            elif char == quote_char and not escape:
+                in_quote = not in_quote
+            else:
+                escape = False
+        return in_quote
+
+    with open(file_path, 'r') as f:
+        while True:
+            if not extra_iteration:
+                line = f.readline()
+                if not line:
+                    extra_iteration = True
+                    line = '\n'  # Trigger the final block execution
+            else:
+                break
+
+            stripped_line = line.strip()
+
+            # Handle docstrings
+            if in_docstring:
+                if stripped_line.endswith('"""') or stripped_line.endswith("'''"):
+                    in_docstring = False
+                continue
+
+            if stripped_line.startswith('"""') or stripped_line.startswith("'''"):
+                in_docstring = True
+                continue
+
+            # Check for string literals and handle comments safely
+            if not in_quote:
+                temp_line = ''
+                for i, char in enumerate(line):
+                    if char in ('"', "'"):
+                        if not in_quote:
+                            in_quote = True
+                            quote_char = char
+                        elif quote_char == char and (i == 0 or line[i-1] != '\\'):
+                            in_quote = False
+                    if not in_quote and char == '#':
+                        temp_line = line[:i]
+                        break
+                    temp_line += char
+                line = temp_line
+
+            # Remove trailing comments outside string literals
+            stripped_line = line.strip()
+            
+            if not stripped_line and not extra_iteration:
+                continue
+
+            block += line
+
+            # Track open quotes
+            in_quote = is_in_string(line, in_quote, quote_char)
+
+            if in_quote:
+                continue
+
+            # Track open brackets
+            open_brackets += line.count('[') - line.count(']')
+            open_parentheses += line.count('(') - line.count(')')
+            open_braces += line.count('{') - line.count('}')
+
+            # Check if the line ends with a backslash indicating continuation
+            if stripped_line.endswith('\\'):
+                continue
+
+            # If we are inside a block, we shouldn't execute yet
+            if open_brackets > 0 or open_parentheses > 0 or open_braces > 0 or stripped_line.endswith(':'):
+                continue
+
+            try:
+                exec(block)
+                block = ""
+            except SyntaxError:
+                # If compile fails, continue adding lines to the block
+                continue
+            #except Exception as e: # this interferes with errors in the original code
+            #    print(f"Error executing block: {e}")
+            #    break
+
+
+
+
+def _write_toml(shell, key, value=None):
+    import sh0  # load mv command
+    ifn = '/settings.toml'
+    tmp = '/settings_new.toml'
+
+    with open(ifn, 'r') as infile, open(tmp, 'w') as outfile:
+        in_multiline = False
+        extra_iteration = 0
+        line = ''
+
+        while True:
+            #print(f"L extra_iteration={extra_iteration} n_multiline={in_multiline} ")
+            if extra_iteration < 1:
+                iline = infile.readline()
+                if not iline:
+                    extra_iteration = 1
+                    iline = ''  # Trigger the final block execution
+            elif extra_iteration == 2:
+                extra_iteration = 0
+            else:
+                break
+
+            line += iline
+            iline = ''
+            stripped_line = line.strip()
+
+            #print(f"line='{line}'")
+
+            if in_multiline:
+                if stripped_line.endswith( in_multiline ) and not stripped_line.endswith(f'\\{in_multiline}'):
+                    in_multiline = '' # tell it not to re-check next
+                else:
+                    continue
+
+            if not stripped_line.startswith('#'):
+                kv = stripped_line.split('=', 1)
+                if not in_multiline == '': # not just ended a multiline
+                    if len(kv) > 1 and ( kv[1].strip().startswith('"""') or kv[1].strip().startswith("'''")):
+                        in_multiline = '"""' if kv[1].strip().startswith('"""') else "'''"
+                        extra_iteration = 2 # skip reading another line, and go back to process this one (which might have the """ or ''' ending already on it) 
+                        continue
+
+                if len(kv) > 1 or extra_iteration == 1:
+                    if kv[0].strip() == key or extra_iteration == 1:
+                        if value == '':
+                            line='' # Delete the variable
+                            continue
+                        else:
+                            if value[0] in '+-.0123456789"\'': # Update the variable
+                                line = f'{key} = {value}\n'
+                            else:
+                                line = f'{key} = "{value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\t", "\\t")}"\n' 
+                            key=None
+
+            in_multiline = False
+            #print(f"wrote '{line}'")
+            outfile.write(line)
+            line=''
+
+    #print("done.")
+
+    # Replace old settings with the new settings
+    sh0.mv(shell, {'sw': {}, 'args': ['mv', ifn, '/settings_old.toml']})
+    sh0.mv(shell, {'sw': {}, 'args': ['mv', tmp, ifn]})
+    del sys.modules['sh0']
+
+
+def alias(shell, cmdenv):
+    if len(cmdenv['args']) < 2:
+        _ea(shell, cmdenv)
+        return
+    key, value = cmdenv['line'].split(' ', 1)[1].strip().split('=', 1) # discard the prefix. Note that the = is not allowed to have spaces.
+    #if value = '':
+    #    value=None
+    print(f"setting {key}={value}")
+    _write_toml(shell,key, value)
+
+def export(shell, cmdenv):
+    alias(shell, cmdenv)  # same as alias
+def set(shell, cmdenv):
+    alias(shell, cmdenv)  # same as alias
