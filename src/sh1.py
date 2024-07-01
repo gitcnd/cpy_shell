@@ -65,12 +65,12 @@ def help(shell, cmdenv):
             for cmd in sorted(commands):
                 print(f"  {cmd}")
     except Exception as e:
-        _ee(shell, cmdenv, e)  # print(f"help: {e}")
+        shell._ee(cmdenv, e)  # print(f"help: {e}")
 
 
 def which(shell, cmdenv):
     if len(cmdenv['args']) < 2:
-        _ea(shell, cmdenv)
+        shell._ea(cmdenv)
         return
 
     command = cmdenv['args'][1]
@@ -139,7 +139,7 @@ def test(shell,cmdenv):
 
 def run(shell,cmdenv):
     if len(cmdenv['args']) < 2:
-        _ea(shell, cmdenv)
+        shell._ea(cmdenv)
         return
 
     file_path = cmdenv['args'][1]
@@ -187,7 +187,7 @@ def run(shell,cmdenv):
 
 def run2(shell, cmdenv):
     if len(cmdenv['args']) < 2:
-        _ea(shell, cmdenv)
+        shell._ea(cmdenv)
         return
 
     file_path = cmdenv['args'][1]
@@ -289,6 +289,21 @@ def run2(shell, cmdenv):
 
 
 
+def cat(shell, cmdenv):
+    if len(cmdenv['args']) < 2:
+        shell._ea(cmdenv)  # print("cat: missing file operand")
+    else:
+        for path in cmdenv['args'][1:]:
+            try:
+                with open(path, 'rb') as file:
+                    while True:
+                        chunk = file.read(64)
+                        if not chunk:
+                            break
+                        print(chunk.decode('utf-8'), end='')
+            except Exception as e:
+                shell._ee(cmdenv, e)  # print(f"cat: {e}")
+
 
 def _write_toml(shell, key, value=None):
     import sh0  # load mv command
@@ -359,12 +374,10 @@ def _write_toml(shell, key, value=None):
 
 def alias(shell, cmdenv):
     if len(cmdenv['args']) < 2:
-        _ea(shell, cmdenv)
+        cat(shell, {'sw': {}, 'args': ['alias', '/settings.toml']}) # all aliases are stored in /settings.toml
+        #shell._ea(cmdenv)
         return
     key, value = cmdenv['line'].split(' ', 1)[1].strip().split('=', 1) # discard the prefix. Note that the = is not allowed to have spaces.
-    #if value = '':
-    #    value=None
-    print(f"setting {key}={value}")
     _write_toml(shell,key, value)
 
 def export(shell, cmdenv):

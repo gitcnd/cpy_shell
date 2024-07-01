@@ -548,6 +548,13 @@ class sh:
 
         return None
 
+    # error-message expander helpers
+    def _ea(shell, cmdenv):
+        print(shell.get_desc('9').format(cmdenv['args'][0])) # {}: missing operand(s)
+
+    def _ee(shell, cmdenv, e):
+        print(shell.get_desc('10').format(cmdenv['args'][0],e)) # {}: {}
+
 
     def file_exists(self, filepath):
         try:
@@ -841,7 +848,7 @@ class sh:
 
             alias = os.getenv(cmd)
             if alias is not None:
-                command=alias + command[command.find(' '):] or ' '
+                command=alias + command[command.find(' '):] if ' ' in command else alias
             else:
                 break
 

@@ -25,12 +25,12 @@ def free(shell, cmdenv):
         print(f"Used Memory: {used_memory} bytes")
         print(f"Free Memory: {free_memory} bytes")
     except Exception as e:
-        _ee(shell, cmdenv, e)  # print(f"free: {e}")
+        shell._ee(cmdenv, e)  # print(f"free: {e}")
 
 
 def wc(shell, cmdenv):
     if len(cmdenv['args']) < 2:
-        _ea(shell, cmdenv)  # print("wc: missing file operand")
+        shell._ea(cmdenv)  # print("wc: missing file operand")
     else:
         path = cmdenv['args'][1]
         try:
@@ -47,7 +47,7 @@ def wc(shell, cmdenv):
                     bytes_count += len(chunk)
                 print(f"{lines} {words} {bytes_count} {path}")
         except Exception as e:
-            _ee(shell, cmdenv, e)  # print(f"wc: {e}")
+            shell._ee(cmdenv, e)  # print(f"wc: {e}")
 
 
 
@@ -142,14 +142,14 @@ def date(shell, cmdenv):
 
 def sleep(shell, cmdenv): # not working
     if len(cmdenv['args']) < 2:
-        _ea(shell, cmdenv)
+        shell._ea(cmdenv)
         return
     time.sleep(float(cmdenv['args'][1]))
 
 
 def _sleep(shell, cmdenv): # not working
     if len(cmdenv['args']) < 2:
-        _ea(shell, cmdenv)
+        shell._ea(cmdenv)
         return
 
     import alarm

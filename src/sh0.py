@@ -13,12 +13,6 @@ import time
 
 
 #print(self.get_desc('4').format(e)) # Socket send exception: {}
-def _ea(shell, cmdenv):
-    print(shell.get_desc('9').format(cmdenv['args'][0])) # {}: missing operand(s)
-
-def _ee(shell, cmdenv, e):
-    print(shell.get_desc('10').format(cmdenv['args'][0],e)) # {}: {}
-
 def _bare(f):
     if f.endswith('/') and len(f) > 1:
         f = f.rstrip('/')
@@ -79,12 +73,12 @@ def ls(shell,cmdenv):   # impliments -F -l -a -t -r -S -h
 
 def cd(shell, cmdenv):
     if len(cmdenv['args']) < 2:
-        _ea(shell, cmdenv) # print(self.get_desc('9').format(cmdenv['args'][0])) # {}: missing operand(s)
+        shell._ea(cmdenv) # print(self.get_desc('9').format(cmdenv['args'][0])) # {}: missing operand(s)
     else:
         try:
             os.chdir(cmdenv['args'][1])
         except OSError as e:
-            _ee(shell, cmdenv, e) # print(f"cd: {e}")
+            shell._ee(cmdenv, e) # print(f"cd: {e}")
 
 
 def _cp(src, tgt):
@@ -93,7 +87,7 @@ def _cp(src, tgt):
                 with open(tgt, 'wb') as dest_file:	# OSError: [Errno 30] Read-only filesystem
                     dest_file.write(src_file.read())
     except OSError as e:
-        _ee(shell, cmdenv, e)  # print(f"mv: {e}")
+        shell._ee(cmdenv, e)  # print(f"mv: {e}")
 
 
 def _confirm_overwrite(shell, filename):
@@ -105,7 +99,7 @@ def mv(shell, cmdenv):
     cmd = cmdenv['args'][0]
     interactive = cmdenv['sw'].get('i', False)
     if len(cmdenv['args']) < 3:
-        _ea(shell, cmdenv)  # print("mv: missing file operand")
+        shell._ea(cmdenv)  # print("mv: missing file operand")
     else:
         target = cmdenv['args'][-1]
         try:
@@ -138,7 +132,7 @@ def mv(shell, cmdenv):
                             os.remove(target)
                         os.rename(path, target)
                 except OSError as e:
-                    _ee(shell, cmdenv, e)  # print(f"mv: {e}")
+                    shell._ee(cmdenv, e)  # print(f"mv: {e}")
             else:
                 print(shell.get_desc('11').format(cmd, target))  # {}: target '{}' is not a directory
 
@@ -148,7 +142,7 @@ def cp(shell, cmdenv):
 
 def rm(shell, cmdenv):
     if len(cmdenv['args']) < 2:
-        _ea(shell, cmdenv) # print("rm: missing file operand")
+        shell._ea(cmdenv) # print("rm: missing file operand")
     else:
         for path in cmdenv['args'][1:]:
             try:
@@ -157,7 +151,7 @@ def rm(shell, cmdenv):
                 else:
                     os.remove(path)
             except OSError as e:
-                _ee(shell, cmdenv,e) # print(f"rm: {e}")
+                shell._ee(cmdenv,e) # print(f"rm: {e}")
 
 def pwd(shell, cmdenv):
     print(os.getcwd())
@@ -169,7 +163,7 @@ def echo(shell, cmdenv):
 
 def mkdir(shell, cmdenv):
     if len(cmdenv['args']) < 2:
-        _ea(shell, cmdenv) # print("mkdir: missing file operand")
+        shell._ea(cmdenv) # print("mkdir: missing file operand")
     else:
         for path in cmdenv['args'][1:]:
             try:
@@ -178,7 +172,7 @@ def mkdir(shell, cmdenv):
                 else:
                     os.mkdir(path)
             except OSError as e:
-                _ee(shell, cmdenv,e) # print(f"{}: {e}")
+                shell._ee(cmdenv,e) # print(f"{}: {e}")
 
 
 def rmdir(shell, cmdenv):
@@ -187,7 +181,7 @@ def rmdir(shell, cmdenv):
 
 def touch(shell, cmdenv):
     if len(cmdenv['args']) < 2:
-        _ea(shell, cmdenv) # print("touch: missing file operand")
+        shell._ea(cmdenv) # print("touch: missing file operand")
     else:
         # path = cmdenv['args'][1]
         for path in cmdenv['args'][1:]:
@@ -208,23 +202,8 @@ def touch(shell, cmdenv):
                     else:
                         raise e  # Re-raise the exception if it is not a "file not found" error
             except Exception as e:
-                _ee(shell, cmdenv, e)  # print(f"{}: {e}")
+                shell._ee(cmdenv, e)  # print(f"{}: {e}")
 
-
-def cat(shell, cmdenv):
-    if len(cmdenv['args']) < 2:
-        _ea(shell, cmdenv)  # print("cat: missing file operand")
-    else:
-        for path in cmdenv['args'][1:]:
-            try:
-                with open(path, 'rb') as file:
-                    while True:
-                        chunk = file.read(64)
-                        if not chunk:
-                            break
-                        print(chunk.decode('utf-8'), end='')
-            except Exception as e:
-                _ee(shell, cmdenv, e)  # print(f"cat: {e}")
 
 
 def df(shell, cmdenv):
@@ -239,7 +218,7 @@ def df(shell, cmdenv):
         print(f"Filesystem Size Used Available")
         print(f"/ {shell.human_size(total_size)} {shell.human_size(used_size)} {shell.human_size(free_size)}")
     except OSError as e:
-        _ee(shell, cmdenv,e) # print(f"{}: {e}")
+        shell._ee(cmdenv,e) # print(f"{}: {e}")
 
 
 def ping(shell, cmdenv):
@@ -326,7 +305,7 @@ def _termtype(shell, cmdenv):
 
 #def termtitle(shell, cmdenv):
 #    if len(cmdenv['args']) < 2:
-#        _ea(shell, cmdenv)  # print("cat: missing file operand")
+#        shell._ea(cmdenv)  # print("cat: missing file operand")
 #    else:
 #        print(f"\033]20;\007\033]0;{cmdenv['args'][1]}\007", end='')  # get current title, then set a new title: does nothing
 
