@@ -384,3 +384,21 @@ def export(shell, cmdenv):
     alias(shell, cmdenv)  # same as alias
 def set(shell, cmdenv):
     alias(shell, cmdenv)  # same as alias
+
+def create(shell, cmdenv):
+    if len(cmdenv['args']) < 2:
+        shell._ea(cmdenv)  # print("cat: missing file operand")
+    else:
+        path = cmdenv['args'][1]
+        try:
+            with open(path, 'wb') as file:
+                print("Enter text to write to the file. Press ^D (Ctrl+D) to end.")
+                while True:
+                    try:
+                        line = input()
+                        file.write(line.encode('utf-8') + b'\n')
+                    except EOFError:
+                        break
+        except Exception as e:
+            shell._ee(cmdenv, e)  # print(f"cat: {e}")
+

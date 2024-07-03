@@ -388,7 +388,8 @@ class CustomIO:
     def send_chars_to_all(self, chars):
         if chars:
             chars = chars.replace('\\n', '\r\n')  # Convert LF to CRLF
-            sys.stdout.write(chars)
+            sys.stdout.write(chars) # + "\x1b[s\x1b[1B\x1b[1C\x1b[u")
+            # sys.stdout.flush() # AttributeError: 'FileIO' object has no attribute 'flush'
             # Send to all output files
             for file in self.outfiles:
                 try:
@@ -941,3 +942,11 @@ main()
 if "sh" in sys.modules:
     del sys.modules["sh"] # so we can re-run us later
 
+
+### See also ###
+# import storage
+# storage.erase_filesystem()
+#
+# import storage
+# storage.disable_usb_drive()
+# storage.remount("/", readonly=False)
