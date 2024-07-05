@@ -1,5 +1,5 @@
 # cpy_shell
-Linux-like shell interface for CircuitPython
+Linux-like shell interface for CircuitPython.  ( See [mpy_shell](https://github.com/gitcnd/mpy_shell) for the MicroPython version. )
 
 Inspired by [mipyshell](https://github.com/vsolina/mipyshell) and busybox, here is a command-line shell for your CircuitPython board carefully implementing a range of useful commands and features.
 
